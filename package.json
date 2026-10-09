@@ -1,0 +1,21 @@
+{
+  "name": "vibequest-ai-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive behavioral discovery game where users play conversational scenarios with Claude-powered characters.",
+  "scripts": {
+    "dev": "concurrently -n \"shared,server,client\" -c \"cyan,magenta,blue\" \"npm run build:watch --workspace=shared\" \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
+    "test": "npm run test --workspace=server"
+  },
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "9.1.2"
+  }
+}

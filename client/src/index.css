@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ink-950 text-paper-50 font-sans antialiased;
+    background-image: radial-gradient(rgba(47, 54, 75, 0.25) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Custom focus outline matching Midnight Dispatch palette */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-coral ring-offset-2 ring-offset-ink-950;
+  }
+}
+
+/* Accessible reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Chat & Panel Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0F15;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252B3D;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2F364B;
+}
