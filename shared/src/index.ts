@@ -179,3 +179,11 @@ export const ApiErrorResponseSchema = z.object({
   })
 });
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
+
+// ============================================================================
+// 7. Scenarios & Universal Simulation Engine Exports
+// ============================================================================
+
+export * from './scenarios.js';
+export * from './simulation.js';
+

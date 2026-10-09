@@ -60,8 +60,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// 6. Mount API Router
+// 6. Mount API Router (mount at both /api and root to support rewrites)
 app.use('/api', apiRouter);
+app.use(apiRouter);
 
 // 7. 404 Catch-All Handler
 app.use((req: Request, res: Response) => {
@@ -88,8 +89,8 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Listen only when started directly (not in test runner)
-if (process.env.NODE_ENV !== 'test') {
+// Listen only when started directly (not in test runner or serverless function)
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`\n======================================================`);
     console.log(`🚀 VibeQuest AI Server running on http://localhost:${PORT}`);

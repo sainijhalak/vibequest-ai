@@ -7,88 +7,136 @@ import {
   ReportResponseSchema,
   HealthResponse,
   HealthResponseSchema,
-  ScenarioDefinition
+  ScenarioDefinition,
+  SCENARIOS,
+  simulateTurn,
+  simulateReport
 } from '@vibequest/shared';
 
-const API_BASE = '/api';
+// Read API Base URL from Vite environment variables (fallback to '/api')
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '') + '/api';
 
 export class ApiService {
   /**
    * Healthcheck to detect backend status and AI mode
    */
   public static async getHealth(): Promise<HealthResponse> {
-    const res = await fetch(`${API_BASE}/health`);
-    if (!res.ok) {
-      throw new Error(`Healthcheck failed with HTTP ${res.status}`);
+    try {
+      const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const data = await res.json();
+        return HealthResponseSchema.parse(data);
+      }
+    } catch (_) {
+      // Backend not running or unreachable
     }
-    const data = await res.json();
-    return HealthResponseSchema.parse(data);
+
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      model: 'client-simulation',
+      mockMode: true,
+      version: '1.0.0'
+    };
   }
 
   /**
    * Fetch all scenarios or by mode
    */
   public static async getScenarios(mode?: string): Promise<ScenarioDefinition[]> {
-    const url = mode ? `${API_BASE}/scenarios?mode=${mode}` : `${API_BASE}/scenarios`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch scenarios: HTTP ${res.status}`);
+    try {
+      const url = mode ? `${API_BASE}/scenarios?mode=${mode}` : `${API_BASE}/scenarios`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          return json.data;
+        }
+      }
+    } catch (_) {
+      // Backend not running or unreachable
     }
-    const json = await res.json();
-    return json.data;
+
+    // Seamless fallback to shared scenario catalog
+    return mode ? SCENARIOS.filter(s => s.mode === mode) : SCENARIOS;
   }
 
   /**
    * Fetch a single scenario by ID
    */
   public static async getScenario(id: string): Promise<ScenarioDefinition> {
-    const res = await fetch(`${API_BASE}/scenarios/${id}`);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch scenario '${id}': HTTP ${res.status}`);
+    try {
+      const res = await fetch(`${API_BASE}/scenarios/${id}`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) return json.data;
+      }
+    } catch (_) {
+      // Backend not running or unreachable
     }
-    const json = await res.json();
-    return json.data;
+
+    const found = SCENARIOS.find(s => s.id === id);
+    if (!found) {
+      throw new Error(`Scenario '${id}' not found.`);
+    }
+    return found;
   }
 
   /**
    * Submit dialogue turn (choice or custom text)
+   * With automatic client simulation fallback if backend returns 404 or is offline.
    */
   public static async submitTurn(payload: TurnRequest): Promise<TurnResponse> {
-    const res = await fetch(`${API_BASE}/scenario/turn`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch(`${API_BASE}/scenario/turn`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000)
+      });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Turn request failed with HTTP ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        return TurnResponseSchema.parse(data.data);
+      }
+
+      // If backend responded with 404 / 502 / 500, log and use client simulation
+      console.warn(`[VibeQuest] Backend returned HTTP ${res.status}. Seamlessly falling back to local simulation engine.`);
+      return simulateTurn(payload);
+    } catch (err: any) {
+      // If network offline or connection refused, seamlessly use client simulation
+      console.warn('[VibeQuest] Live backend unreachable. Seamlessly using local simulation engine.', err?.message);
+      return simulateTurn(payload);
     }
-
-    const data = await res.json();
-    return TurnResponseSchema.parse(data.data);
   }
 
   /**
    * Request post-game reflection report
+   * With automatic client simulation fallback if backend returns 404 or is offline.
    */
   public static async getReport(payload: ReportRequest): Promise<ReportResponse> {
-    const res = await fetch(`${API_BASE}/report`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch(`${API_BASE}/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000)
+      });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Report generation failed with HTTP ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        return ReportResponseSchema.parse(data.data);
+      }
+
+      console.warn(`[VibeQuest] Backend returned HTTP ${res.status}. Seamlessly falling back to local report synthesis.`);
+      return simulateReport(payload);
+    } catch (err: any) {
+      console.warn('[VibeQuest] Live backend unreachable. Seamlessly generating local reflection report.', err?.message);
+      return simulateReport(payload);
     }
-
-    const data = await res.json();
-    return ReportResponseSchema.parse(data.data);
   }
 }
