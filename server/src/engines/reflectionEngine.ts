@@ -4,7 +4,8 @@ import {
   Turn,
   ReportResponse,
   ReportResponseSchema,
-  ScenarioDefinition
+  ScenarioDefinition,
+  simulateReport
 } from '@vibequest/shared';
 import { computeScores } from './scoringEngine.js';
 
@@ -123,6 +124,7 @@ Return a JSON object with:
 
             const parsed = zodResult.data;
 
+            const simulated = simulateReport({ scenarioId: scenario.id, history });
             return ReportResponseSchema.parse({
               scenarioId: scenario.id,
               scenarioTitle: scenario.title,
@@ -136,7 +138,8 @@ Return a JSON object with:
               mockMode: false,
               archetype: parsed.archetype,
               archetypeTagline: parsed.archetypeTagline,
-              howItLanded: parsed.howItLanded
+              howItLanded: parsed.howItLanded,
+              reportCard: simulated.reportCard
             });
           }
         } catch (err: any) {
@@ -146,22 +149,11 @@ Return a JSON object with:
     }
 
     // High quality contextual fallback debrief
-    const fallback = this.generateFallbackReflection(scenario, scoringResult.scores, history);
+    const simulated = simulateReport({ scenarioId: scenario.id, history });
 
     return ReportResponseSchema.parse({
-      scenarioId: scenario.id,
-      scenarioTitle: scenario.title,
-      characterName: scenario.character.name,
-      scores: scoringResult.scores,
-      vibeSnapshot: fallback.vibeSnapshot,
-      observedPatterns: fallback.observedPatterns,
-      alternativeApproaches: fallback.alternativeApproaches,
-      receipts: scoringResult.receipts,
-      whatWeCannotKnow,
-      mockMode: isMock,
-      archetype: fallback.archetype,
-      archetypeTagline: fallback.archetypeTagline,
-      howItLanded: fallback.howItLanded
+      ...simulated,
+      mockMode: isMock
     });
   }
 

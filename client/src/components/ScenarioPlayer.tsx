@@ -140,7 +140,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         setCharacterMoodDesc(response.characterMoodDescription);
       }
 
-      if (!response.canContinue || nextTurnNum >= scenario.maxTurns) {
+      if (nextTurnNum >= 12) {
         setIsFinished(true);
         soundFx.triggerHaptic([20, 40, 20]);
       }
@@ -208,7 +208,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         setCharacterMoodDesc(response.characterMoodDescription);
       }
 
-      if (!response.canContinue || nextTurnNum >= scenario.maxTurns) {
+      if (nextTurnNum >= 12) {
         setIsFinished(true);
         soundFx.triggerHaptic([20, 40, 20]);
       }
@@ -516,6 +516,29 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
+            {userTurnsCount >= 2 && (
+              <div className="bg-comic-yellow p-4 rounded-2xl border-3 border-black shadow-cartoon flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl animate-bounce">🎓</span>
+                  <div>
+                    <span className="font-display font-black text-sm text-black block">
+                      VIBE REPORT CARD UNLOCKED! ({userTurnsCount} turns recorded)
+                    </span>
+                    <span className="font-sans font-medium text-xs text-ink-800">
+                      You can keep chatting or grade your social performance now!
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFinished(true)}
+                  className="bg-comic-pink hover:bg-comic-orange text-white font-display font-black text-xs px-4 py-2.5 rounded-xl border-3 border-black shadow-cartoon-sm hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
+                >
+                  ⭐ GRADE MY VIBE NOW →
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-paper-300 font-medium">CHOOSE YOUR TACTIC:</span>
               <button

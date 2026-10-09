@@ -28,7 +28,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: 'Hey stranger! Remember me? 😂 Honestly was just thinking about that chaotic road trip we took and had to see how you were doing.',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_playful_tease',
@@ -101,7 +101,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: 'Ugh I am SO sorry... Work just exploded with a client escalation. I am literally stuck at my desk until 9pm. Can we please reschedule for next week? So sorry to do this again 😭',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_jordan_boundary',
@@ -174,7 +174,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: '[Leo posted a dog video] 😂😂😂 Literally me every single Monday morning.',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_leo_callout',
@@ -251,7 +251,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: 'Haha come on, you know I love you! Do not look at me like that, it was just harmless banter! 😅',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_firm_boundary',
@@ -324,7 +324,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: 'Great call! The director seemed really impressed with the direction. We set ourselves up nicely for the quarterly review.',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_elena_objective_callout',
@@ -401,7 +401,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: '[Sam looks up from the book, notices you looking, and smiles slightly before closing it] Do not tell me—you are judging my reading pace, aren\'t you?',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_book_tease',
@@ -474,7 +474,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
       }
     },
     openingMessage: 'You know, you have been studying that brushwork with more intensity than the artist probably had when painting it. I could not help admiring that kind of focus.',
-    maxTurns: 5,
+    maxTurns: 10,
     initialChoices: [
       {
         id: 'opt_chloe_witty_redirect',

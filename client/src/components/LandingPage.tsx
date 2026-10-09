@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import { GameMode, ScenarioDefinition } from '@vibequest/shared';
-import { Button } from './ui/Button.js';
+import { Cartoon3DMascot } from './three/Cartoon3DMascot.js';
+import { Cartoon3DScene } from './three/Cartoon3DScene.js';
 import { CharacterAvatar } from './ui/CharacterAvatar.js';
+import { soundFx } from '../services/soundFx.js';
 
 interface LandingPageProps {
   scenarios: ScenarioDefinition[];
   onSelectScenario: (scenario: ScenarioDefinition) => void;
   onClearData: () => void;
   mockMode: boolean;
+  onGoToRoastBot?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   scenarios,
   onSelectScenario,
   onClearData,
-  mockMode
+  mockMode: _mockMode,
+  onGoToRoastBot
 }) => {
   const [activeFilter, setActiveFilter] = useState<GameMode | 'all'>('all');
-  const [featuredScenarioId, setFeaturedScenarioId] = useState<string>(scenarios[0]?.id || 'unexpected-message');
-
-  const featuredScenario = scenarios.find(s => s.id === featuredScenarioId) || scenarios[0];
+  const featuredScenario = scenarios[0];
 
   const filteredScenarios = activeFilter === 'all'
     ? scenarios
@@ -28,232 +30,218 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const getModeLabel = (mode: GameMode) => {
     switch (mode) {
       case 'conflict_arena':
-        return 'CONFLICT ARENA';
+        return '🥊 CONFLICT ARENA';
       case 'social_simulator':
-        return 'SOCIAL SIMULATOR';
+        return '📱 SOCIAL SIMULATOR';
       case 'flirt_lab':
-        return 'FLIRT LAB';
+        return '💘 FLIRT LAB';
       default:
-        return 'SCENARIO';
+        return '🎮 SCENARIO';
     }
   };
 
   const getModeColor = (mode: GameMode) => {
     switch (mode) {
       case 'conflict_arena':
-        return 'text-coral border-coral/40 bg-coral/10';
+        return 'bg-comic-pink text-white border-black';
       case 'social_simulator':
-        return 'text-amber border-amber/40 bg-amber/10';
+        return 'bg-comic-yellow text-black border-black';
       case 'flirt_lab':
-        return 'text-mint border-mint/40 bg-mint/10';
+        return 'bg-comic-cyan text-black border-black';
       default:
-        return 'text-paper-300 border-ink-700 bg-ink-850';
+        return 'bg-white text-black border-black';
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
-      {/* Top Banner: Status & Privacy */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-ink-700/80">
+    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16 overflow-hidden">
+      {/* 3D Floating Cartoon Background Scene */}
+      <Cartoon3DScene className="opacity-40" />
+
+      {/* Top Banner: Status & Navigation */}
+      <header className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-4 border-black">
         <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-coral animate-pulse" />
-          <span className="font-display font-bold text-lg sm:text-xl tracking-tight text-paper-50">
-            VIBEQUEST <span className="font-mono text-xs text-coral font-medium tracking-normal">[0.2]</span>
+          <div className="w-4 h-4 rounded-full bg-comic-green border-2 border-black animate-bounce" />
+          <span className="font-display font-black text-2xl tracking-tight text-paper-50 uppercase">
+            VIBEQUEST <span className="bg-comic-yellow text-black font-mono text-xs px-2 py-0.5 rounded-lg border-2 border-black">3D CARTOON</span>
           </span>
-          <span className="hidden md:inline font-mono text-[11px] text-paper-400 pl-2 border-l border-ink-700">
-            Fictional Social Simulation & Behavioral Reflection
+          <span className="hidden md:inline font-mono text-xs text-paper-300 pl-3 border-l-2 border-paper-400">
+            Interactive Social Game & Comedy Report Card
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono">
-          {mockMode && (
-            <span className="px-2 py-0.5 rounded bg-amber/10 border border-amber/30 text-amber text-[11px]">
-              OFFLINE / EMULATION ENGINE
-            </span>
+        <div className="flex items-center gap-3 text-xs font-mono font-bold">
+          {onGoToRoastBot && (
+            <button
+              onClick={() => {
+                soundFx.playTap();
+                onGoToRoastBot();
+              }}
+              type="button"
+              className="bg-comic-pink hover:bg-comic-orange text-white font-display font-black px-4 py-2 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center gap-1.5"
+            >
+              <span>🔥 ROAST ARENA</span>
+            </button>
           )}
+
           <button
             onClick={onClearData}
             type="button"
-            className="text-paper-400 hover:text-paper-100 underline decoration-ink-700 underline-offset-4 transition-colors"
+            className="text-paper-400 hover:text-white underline decoration-paper-400 underline-offset-4 transition-colors"
           >
-            Clear local data
+            Clear data
           </button>
         </div>
       </header>
 
-      {/* Hero Section: Asymmetrical Editorial Opening + Live Encounter Showcase */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Editorial Hook (6 Cols) */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-ink-700 font-mono text-[11px] text-paper-300 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-mint animate-pulse" />
-            <span className="text-mint font-semibold">NO BORING QUESTIONNAIRES</span>
-            <span className="text-paper-400">• ACTUAL CONVERSATIONAL TACTICS</span>
+      {/* Hero Section: 3D Mascot Stage + Bold Comic Hook */}
+      <section className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        {/* Left Comic Hook */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-comic-yellow text-black border-3 border-black font-mono text-xs font-black shadow-cartoon-sm">
+            <span>⚡ ZERO BORING QUIZZES</span>
+            <span>•</span>
+            <span>REAL INTERPERSONAL CHOICES</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tight text-paper-50 leading-[1.12]">
-            Play the moment. <br />
-            <span className="text-coral">Discover your vibe.</span>
+          <h1 className="text-4xl sm:text-6xl font-display font-black tracking-tight text-white leading-[1.08] uppercase">
+            Play The Moment. <br />
+            <span className="text-comic-pink bg-black px-2 border-3 border-black shadow-cartoon inline-block my-1">
+              DISCOVER YOUR VIBE.
+            </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-paper-300 font-sans leading-relaxed max-w-xl">
-            Enter simulated everyday social dilemmas, relationship crossroads, and workplace conflicts. Interact with nuanced characters who react to your actual words. Uncover your real communication instincts—not through generic multiple-choice quizzes, but through the decisions you make under pressure.
+          <p className="text-base sm:text-lg text-paper-200 font-sans font-medium leading-relaxed max-w-xl">
+            Step into dramatic everyday texts, awkward friend dilemmas, workplace credit heists, and rainy café sparks. Talk directly with expressive cartoon characters, choose your tactics, and receive your hilarious official **Vibe Report Card** with letter grades and teacher remarks!
           </p>
 
-          <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            {featuredScenario && (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={() => onSelectScenario(featuredScenario)}
-              >
-                Launch Simulation ({featuredScenario.title}) →
-              </Button>
-            )}
-
-            <a
-              href="#scenarios"
-              className="font-mono text-xs text-paper-300 hover:text-paper-100 flex items-center justify-center sm:justify-start gap-1.5 py-2 px-1 transition-colors underline underline-offset-4"
+          {/* Quick Action Badges */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => onSelectScenario(featuredScenario)}
+              className="bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-base px-6 py-3.5 rounded-2xl border-4 border-black shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 transition-transform flex items-center gap-2"
             >
-              Explore all 7 scenarios ↓
-            </a>
+              <span>🎮 JUMP INTO SCENARIO →</span>
+            </button>
+
+            {onGoToRoastBot && (
+              <button
+                type="button"
+                onClick={() => {
+                  soundFx.playTap();
+                  onGoToRoastBot();
+                }}
+                className="bg-comic-cyan hover:bg-comic-pink hover:text-white text-black font-display font-black text-base px-6 py-3.5 rounded-2xl border-4 border-black shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 transition-all flex items-center gap-2"
+              >
+                <span>🔥 ROAST BATTLE WITH BUSTER</span>
+              </button>
+            )}
           </div>
 
-          {/* Key Tenet Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4 border-t border-ink-800 text-xs font-mono text-paper-400">
-            <div className="flex items-center gap-2">
-              <span className="text-coral">✓</span>
-              <span>5 Turns per Scenario</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-mint">✓</span>
-              <span>4-5 Tactical Moves</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-amber">✓</span>
-              <span>Zero Judgmental Labels</span>
-            </div>
+          {/* Comic Stickers Row */}
+          <div className="flex items-center gap-2 pt-2">
+            <span className="bg-white text-black font-mono font-black text-[10px] px-2.5 py-1 rounded-full border-2 border-black rotate-[-3deg] shadow-cartoon-sm">
+              ✨ THREE.JS 3D
+            </span>
+            <span className="bg-comic-pink text-white font-mono font-black text-[10px] px-2.5 py-1 rounded-full border-2 border-black rotate-[2deg] shadow-cartoon-sm">
+              💥 100% UNFILTERED
+            </span>
+            <span className="bg-comic-yellow text-black font-mono font-black text-[10px] px-2.5 py-1 rounded-full border-2 border-black rotate-[-2deg] shadow-cartoon-sm">
+              📜 COMEDY REPORT CARD
+            </span>
           </div>
         </div>
 
-        {/* Right Feature Showcase: Live Encounter Dossier Terminal (6 Cols) */}
-        {featuredScenario && (
-          <div className="lg:col-span-6 bg-ink-900 border border-ink-700/80 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 relative overflow-hidden backdrop-blur-md">
-            {/* Top Terminal Strip */}
-            <div className="flex items-center justify-between pb-4 border-b border-ink-800 text-xs font-mono">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-coral animate-ping" />
-                <span className="text-paper-300 font-bold uppercase tracking-wider">
-                  FEATURED ENCOUNTER TERMINAL
-                </span>
-              </div>
-              <span className={`px-2 py-0.5 rounded font-mono text-[10px] uppercase font-semibold border ${getModeColor(featuredScenario.mode)}`}>
-                {getModeLabel(featuredScenario.mode)}
-              </span>
+        {/* Right 3D Interactive Mascot Stage */}
+        <div className="lg:col-span-5 flex flex-col items-center justify-center">
+          <div className="relative bg-[#FFFDF0] p-6 sm:p-8 rounded-3xl border-4 border-black shadow-cartoon-xl text-center w-full max-w-sm">
+            {/* Comic Floating Tag */}
+            <div className="absolute -top-4 -right-3 bg-comic-pink text-white font-mono font-extrabold text-xs px-3 py-1 rounded-full border-2 border-black rotate-6 shadow-cartoon-sm">
+              CLICK TO BOUNCE!
             </div>
 
-            {/* Quick Scenario Selector Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {scenarios.slice(0, 3).map((s, idx) => (
-                <button
-                  key={s.id}
-                  onClick={() => setFeaturedScenarioId(s.id)}
-                  type="button"
-                  className={`font-mono text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
-                    featuredScenario.id === s.id
-                      ? 'bg-coral-tint border-coral text-coral font-bold'
-                      : 'bg-ink-950 border-ink-800 text-paper-400 hover:text-paper-200'
-                  }`}
-                >
-                  [0{idx + 1}] {s.character.name.split(' ')[0]}
-                </button>
-              ))}
+            {/* Three.js 3D Mascot */}
+            <div className="py-2 flex justify-center">
+              <Cartoon3DMascot mood="happy" size="lg" />
             </div>
 
-            {/* Character Dossier Hero Card */}
-            <div className="bg-ink-950 border border-ink-800 rounded-2xl p-4 sm:p-5 flex items-start gap-4 shadow-inner">
-              <CharacterAvatar
-                seed={featuredScenario.character.avatarSeed}
-                name={featuredScenario.character.name}
-                accentColor={featuredScenario.character.accentColor}
-                size="lg"
-                mood={featuredScenario.character.quirks?.initialMood || 'neutral'}
-                showMoodBadge={true}
-              />
-              <div className="space-y-1.5 flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display font-bold text-base sm:text-lg text-paper-50 truncate">
-                    {featuredScenario.character.name}
-                  </h3>
-                  <span className="font-mono text-[10px] text-paper-400">
-                    5 TURNS • {featuredScenario.maxTurns} ROADS
-                  </span>
-                </div>
-                <p className="font-mono text-xs text-coral">
-                  {featuredScenario.character.role}
-                </p>
-                <p className="font-sans text-xs text-paper-300 leading-relaxed line-clamp-2">
-                  {featuredScenario.character.bio}
-                </p>
+            <div className="space-y-1 mt-2">
+              <div className="font-display font-black text-xl text-black uppercase">
+                BUSTER 3000
               </div>
-            </div>
-
-            {/* Premise & Stakes Card */}
-            <div className="bg-ink-950/70 border border-ink-800 rounded-xl p-4 space-y-2 text-xs">
-              <div className="font-mono text-[10px] text-amber font-semibold uppercase tracking-wider">
-                THE PREMISE & STAKES:
-              </div>
-              <p className="font-sans text-paper-200 leading-relaxed italic">
-                "{featuredScenario.context}"
+              <p className="font-sans font-semibold text-xs text-ink-700">
+                Interactive 3D mascot. Mouse tracks eyes. Ready to roast or cheer you on!
               </p>
-              <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-paper-400 border-t border-ink-800/80">
-                <span>Quirk: {featuredScenario.character.quirks?.messageStyle || 'Direct pacing'}</span>
-                <span className="text-mint font-medium">{featuredScenario.character.quirks?.emojiHabit}</span>
-              </div>
             </div>
 
-            {/* Launch Button */}
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => onSelectScenario(featuredScenario)}
-              className="w-full"
-            >
-              Enter Scenario as You Are →
-            </Button>
+            {onGoToRoastBot && (
+              <button
+                type="button"
+                onClick={onGoToRoastBot}
+                className="w-full mt-4 bg-comic-yellow hover:bg-comic-orange text-black font-display font-black text-xs py-2.5 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+              >
+                ENTER ROAST BATTLE ARENA ⚔️
+              </button>
+            )}
           </div>
-        )}
+        </div>
       </section>
 
-      {/* Scenarios Section: Mode Filter & Scenario Grid */}
-      <section id="scenarios" className="space-y-8 pt-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-ink-700/80">
-          <div>
-            <div className="font-mono text-[11px] text-coral uppercase tracking-wider mb-1">
-              FULL CATALOGUE
+      {/* Standalone Feature: Buster's Roast Battle Banner */}
+      {onGoToRoastBot && (
+        <section className="relative z-10 bg-comic-pink text-white rounded-3xl border-4 border-black p-6 sm:p-8 shadow-cartoon-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="inline-block bg-black text-comic-yellow font-mono font-extrabold text-xs px-3 py-1 rounded-full border-2 border-black shadow-cartoon-sm">
+              NEW GAME MODE: BUSTER ARENA
             </div>
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-paper-50 tracking-tight">
-              Select Your Scenario
+            <h2 className="text-2xl sm:text-4xl font-display font-black tracking-tight text-white uppercase">
+              🔥 Have an Unhinged Roast Battle!
             </h2>
-            <p className="font-sans text-xs text-paper-400 mt-1">
-              Choose an interpersonal moment to play. Each encounter explores different communication dynamics.
+            <p className="font-sans font-semibold text-xs sm:text-sm text-white/95 max-w-xl leading-relaxed">
+              Think you have sharp comebacks? Trade roasts with Buster in real time, see who runs out of HP first, or drop awkward texts for a brutal vibe check!
             </p>
           </div>
 
-          {/* Mode Switcher Filter */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-xs">
+          <button
+            type="button"
+            onClick={onGoToRoastBot}
+            className="bg-comic-yellow hover:bg-comic-green text-black font-display font-black text-sm px-6 py-3.5 rounded-2xl border-3 border-black shadow-cartoon hover:-translate-y-1 active:translate-y-0 transition-transform whitespace-nowrap"
+          >
+            START ROAST BATTLE →
+          </button>
+        </section>
+      )}
+
+      {/* Scenario Filter & Full Game Catalogue */}
+      <section className="relative z-10 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b-3 border-black">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight uppercase">
+              EXPLORE SOCIAL ENCOUNTERS
+            </h2>
+            <p className="font-sans font-medium text-xs text-paper-300 mt-0.5">
+              Choose your playground. Every encounter features distinct characters, stakes, and comedy report cards.
+            </p>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             {(['all', 'social_simulator', 'conflict_arena', 'flirt_lab'] as const).map((mode) => (
               <button
                 key={mode}
-                onClick={() => setActiveFilter(mode)}
                 type="button"
-                className={`px-3 py-1.5 rounded-lg border transition-all uppercase whitespace-nowrap text-[11px] ${
+                onClick={() => {
+                  soundFx.playTap();
+                  setActiveFilter(mode);
+                }}
+                className={`font-mono font-bold text-xs px-3 py-1.5 rounded-xl border-2 border-black transition-all ${
                   activeFilter === mode
-                    ? 'bg-ink-800 border-coral text-coral font-semibold'
-                    : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-100 hover:border-ink-600'
+                    ? 'bg-comic-yellow text-black shadow-cartoon-sm scale-105'
+                    : 'bg-white text-black hover:bg-paper-100'
                 }`}
               >
-                {mode === 'all' ? 'All Encounters' : getModeLabel(mode)}
+                {mode === 'all' ? 'ALL MODES (7)' : getModeLabel(mode)}
               </button>
             ))}
           </div>
@@ -261,92 +249,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* 7 Scenario Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredScenarios.map((scenario) => (
+          {filteredScenarios.map((s) => (
             <div
-              key={scenario.id}
-              onClick={() => onSelectScenario(scenario)}
-              className="group bg-ink-900 hover:bg-ink-850 border border-ink-700/80 hover:border-coral/70 rounded-2xl p-5 sm:p-6 transition-all duration-200 flex flex-col justify-between cursor-pointer hover:shadow-2xl hover:-translate-y-1 relative overflow-hidden"
+              key={s.id}
+              onClick={() => onSelectScenario(s)}
+              className="group bg-[#FFFDF0] text-black rounded-3xl border-4 border-black p-5 shadow-cartoon hover:shadow-cartoon-lg hover:-translate-y-1 transition-all duration-150 cursor-pointer flex flex-col justify-between"
             >
-              {/* Category tag */}
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase font-semibold ${getModeColor(scenario.mode)}`}>
-                  {getModeLabel(scenario.mode)}
-                </span>
-                <span className="font-mono text-[10px] text-paper-400">
-                  {scenario.maxTurns} TURNS
-                </span>
-              </div>
-
-              {/* Character Header */}
-              <div className="flex items-center gap-3.5 mb-3.5">
-                <CharacterAvatar
-                  seed={scenario.character.avatarSeed}
-                  name={scenario.character.name}
-                  accentColor={scenario.character.accentColor}
-                  size="md"
-                  mood={scenario.character.quirks?.initialMood || 'neutral'}
-                />
-                <div>
-                  <h3 className="font-display font-bold text-base text-paper-50 group-hover:text-white transition-colors">
-                    {scenario.character.name}
-                  </h3>
-                  <span className="font-mono text-xs text-paper-400">
-                    {scenario.character.role}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`font-mono font-extrabold text-[10px] px-2.5 py-1 rounded-full border-2 ${getModeColor(s.mode)} shadow-cartoon-sm`}>
+                    {getModeLabel(s.mode)}
+                  </span>
+                  <span className="font-mono text-xs font-bold text-ink-600">
+                    {s.maxTurns} TURNS
                   </span>
                 </div>
-              </div>
 
-              {/* Scenario Title & Tagline */}
-              <div className="space-y-1.5 mb-4 flex-1">
-                <h4 className="font-display font-bold text-sm text-paper-100 group-hover:text-coral transition-colors">
-                  {scenario.title}
-                </h4>
-                <p className="font-sans text-xs text-paper-300 leading-relaxed line-clamp-3">
-                  {scenario.context}
+                <div className="flex items-start gap-3 pt-1">
+                  <CharacterAvatar
+                    seed={s.character.avatarSeed}
+                    name={s.character.name}
+                    accentColor={s.character.accentColor}
+                    size="md"
+                    mood="warm"
+                  />
+                  <div>
+                    <h3 className="font-display font-black text-lg text-black group-hover:text-comic-pink transition-colors">
+                      {s.title}
+                    </h3>
+                    <span className="font-mono text-xs text-ink-700 font-bold">
+                      with {s.character.name} ({s.character.role})
+                    </span>
+                  </div>
+                </div>
+
+                <p className="font-sans font-medium text-xs text-ink-800 line-clamp-2">
+                  "{s.tagline}"
                 </p>
               </div>
 
-              {/* Card Footer */}
-              <div className="pt-3 border-t border-ink-800 flex items-center justify-between text-xs font-mono">
-                <span className="text-[11px] text-paper-400 group-hover:text-paper-300 transition-colors">
-                  {scenario.initialChoices.length} tactical choices
+              <div className="pt-4 border-t-2 border-black/10 flex items-center justify-between mt-3">
+                <span className="font-sans font-bold text-xs text-comic-pink group-hover:underline">
+                  Play this scenario →
                 </span>
-                <span className="text-coral group-hover:translate-x-1 transition-transform font-bold flex items-center gap-1">
-                  Play →
+                <span className="text-base group-hover:scale-125 transition-transform">
+                  🚀
                 </span>
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Philosophy & Scientific Humility Section */}
-      <section className="bg-ink-900 border border-ink-700 rounded-3xl p-6 sm:p-10 space-y-6">
-        <div className="flex items-center gap-2 font-mono text-xs text-coral uppercase tracking-wider">
-          <span>// PHILOSOPHY & DESIGN PRINCIPLES</span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-paper-50 tracking-tight">
-          Tendencies, Not Fixed Personality Prisons
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm text-paper-300 font-sans leading-relaxed">
-          <div className="space-y-2">
-            <h4 className="font-display font-bold text-paper-100 text-sm">Evidence-Backed Receipts</h4>
-            <p>
-              Every observation cites your exact quotes from the transcript. We never tell you what kind of person you are without pointing to what you literally chose to do.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-display font-bold text-paper-100 text-sm">Context Over Dogma</h4>
-            <p>
-              Directness is powerful when asking for a promotion; subtle cushioning is wise when de-escalating family dinner tension. We analyze tactical trade-offs, not "good" vs "bad" people.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-display font-bold text-paper-100 text-sm">Radical Epistemic Humility</h4>
-            <p>
-              A 5-turn dialogue game is an exploratory mirror, not a clinical psychiatric diagnosis. We openly list what we cannot know about your real-world relationships.
-            </p>
-          </div>
         </div>
       </section>
     </div>

@@ -186,6 +186,26 @@ export const ReportRequestSchema = z.object({
 });
 export type ReportRequest = z.infer<typeof ReportRequestSchema>;
 
+export const ReportCardSubjectSchema = z.object({
+  subject: z.string(),
+  grade: z.string(),
+  score: z.number().int().min(0).max(100),
+  funnyComment: z.string()
+});
+export type ReportCardSubject = z.infer<typeof ReportCardSubjectSchema>;
+
+export const ReportCardDataSchema = z.object({
+  overallGpa: z.string(),
+  overallGrade: z.string(),
+  honorRollTitle: z.string(),
+  funnySuperlative: z.string(),
+  teacherRemarks: z.string(),
+  subjectGrades: z.array(ReportCardSubjectSchema),
+  stampBadge: z.string(),
+  roastVerdict: z.string().optional()
+});
+export type ReportCardData = z.infer<typeof ReportCardDataSchema>;
+
 export const ReportResponseSchema = z.object({
   scenarioId: z.string(),
   scenarioTitle: z.string(),
@@ -199,7 +219,8 @@ export const ReportResponseSchema = z.object({
   mockMode: z.boolean(),
   archetype: z.string().optional(),
   archetypeTagline: z.string().optional(),
-  howItLanded: z.string().optional()
+  howItLanded: z.string().optional(),
+  reportCard: ReportCardDataSchema.optional()
 });
 export type ReportResponse = z.infer<typeof ReportResponseSchema>;
 

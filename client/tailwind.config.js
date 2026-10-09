@@ -37,7 +37,24 @@ export default {
         amber: {
           DEFAULT: '#E5A93B',
           tint: '#2B210F',
+        },
+        comic: {
+          yellow: '#FFE600',
+          pink: '#FF4081',
+          cyan: '#00E5FF',
+          green: '#76FF03',
+          purple: '#B388FF',
+          orange: '#FF6D00',
+          card: '#FFFDF0',
+          dark: '#141419',
         }
+      },
+      boxShadow: {
+        'cartoon-sm': '3px 3px 0px #000000',
+        'cartoon': '4px 4px 0px #000000',
+        'cartoon-lg': '6px 6px 0px #000000',
+        'cartoon-xl': '8px 8px 0px #000000',
+        'cartoon-pop': '5px 5px 0px rgba(0,0,0,0.9)',
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],

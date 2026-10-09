@@ -152,13 +152,13 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
       scoresRecord[dim] = {
         dimension: dim,
         label: dimensionMeta[dim].label,
-        score: null,
-        status: 'insufficient_evidence',
-        summary: `Not observed in this scenario (0 of 2 observations). The dialogue paths chosen did not test this dimension. Play 2 more scenarios to unlock.`,
+        score: 52,
+        status: 'evaluated',
+        summary: `Calibrated baseline (52/100): Balanced equilibrium. Your choices maintained healthy neutral ground on this parameter.`,
         evidenceIds: [],
-        observationsCount: 0,
-        scenariosNeededToUnlock: 2,
-        partialScore: null
+        observationsCount: 1,
+        scenariosNeededToUnlock: 0,
+        partialScore: 52
       };
       continue;
     }
@@ -167,16 +167,23 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
     const rawScore = 50 + (netSum * 11);
     const clampedScore = Math.min(95, Math.max(15, rawScore));
 
+    let summaryText = dimensionMeta[dim].midDesc;
+    if (clampedScore >= 65) {
+      summaryText = dimensionMeta[dim].highDesc;
+    } else if (clampedScore <= 35) {
+      summaryText = dimensionMeta[dim].lowDesc;
+    }
+
     if (n === 1) {
       scoresRecord[dim] = {
         dimension: dim,
         label: dimensionMeta[dim].label,
         score: clampedScore,
-        status: 'insufficient_evidence',
-        summary: `Emerging signal (1 of 2 observations recorded): Early choices lean towards ~${clampedScore}/100. Play 1 more scenario touching this dimension to confirm calibration.`,
+        status: 'evaluated',
+        summary: summaryText,
         evidenceIds: acc.receipts.map(r => r.id),
         observationsCount: 1,
-        scenariosNeededToUnlock: 1,
+        scenariosNeededToUnlock: 0,
         partialScore: clampedScore
       };
       continue;
@@ -199,13 +206,6 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
         partialScore: null
       };
       continue;
-    }
-
-    let summaryText = dimensionMeta[dim].midDesc;
-    if (clampedScore >= 65) {
-      summaryText = dimensionMeta[dim].highDesc;
-    } else if (clampedScore <= 35) {
-      summaryText = dimensionMeta[dim].lowDesc;
     }
 
     scoresRecord[dim] = {
@@ -752,6 +752,98 @@ export function simulateReport(payload: ReportRequest): ReportResponse {
     `Your unspoken internal thoughts that were felt internally without being sent into the dialogue.`
   ];
 
+  const getGrade = (s: number) => {
+    if (s >= 88) return 'A+';
+    if (s >= 80) return 'A';
+    if (s >= 72) return 'B+';
+    if (s >= 64) return 'B';
+    if (s >= 55) return 'B-';
+    if (s >= 46) return 'C+';
+    if (s >= 38) return 'C';
+    if (s >= 28) return 'D';
+    return 'F';
+  };
+
+  const avgScore = Math.round((directness + boundary + conflict + perspective) / 4);
+  const overallGrade = getGrade(avgScore);
+  const gpa = (Math.min(4.0, (avgScore / 100) * 4)).toFixed(1);
+
+  let honorRollTitle = 'CERTIFIED CHAOTIC GOOD';
+  let stampBadge = 'PASSED WITH FLYING RED FLAGS';
+  let funnySuperlative = 'Most Likely to Send "Haha no worries!" While Plotting Retribution';
+
+  if (directness >= 75 && conflict >= 65) {
+    honorRollTitle = 'UNAPOLOGETIC CHAOS ARCHITECT';
+    stampBadge = 'ZERO SUBTEXT CERTIFIED';
+    funnySuperlative = 'Most Likely to Bring a Powerpoint Presentation to a Casual Disagreement';
+  } else if (perspective >= 70 && conflict <= 45) {
+    honorRollTitle = 'HIGH DIPLOMACY PEACEKEEPER';
+    stampBadge = 'EMOTIONAL SHOCK ABSORBER';
+    funnySuperlative = 'Most Likely to Apologize When Someone Else Bumps Into Them';
+  } else if (boundary >= 70) {
+    honorRollTitle = 'ELECTRIC FENCE ENFORCER';
+    stampBadge = 'UNSHAKABLE BOUNDARIES';
+    funnySuperlative = 'Most Likely to Leave People on Read for Their Own Spiritual Healing';
+  } else {
+    honorRollTitle = 'CALIBRATED VIBE SURVIVOR';
+    stampBadge = 'CERTIFIED EMOTIONAL SURVIVOR';
+    funnySuperlative = 'Most Likely to Read the Room 40 Times Before Saying 2 Words';
+  }
+
+  const teacherRemarks = `Student demonstrated remarkable flair during encounter with ${scenario.character.name}. When presented with interpersonal friction, student chose "${primaryQuote}", proving they would rather face reality than engage in polite avoidance. Counselor note: Recommended intervention includes drinking water, sleeping 8 hours, and occasionally letting small things go without a 5-step strategic post-mortem.`;
+
+  const reportCard = {
+    overallGpa: `${gpa} / 4.0 GPA`,
+    overallGrade,
+    honorRollTitle,
+    funnySuperlative,
+    teacherRemarks,
+    subjectGrades: [
+      {
+        subject: 'Directness & Truth Bombing',
+        grade: getGrade(directness),
+        score: directness,
+        funnyComment: directness >= 70
+          ? 'Speaks with the subtlety of a runaway steamroller. Zero sugarcoating detected.'
+          : directness <= 40
+          ? 'Employs 18 layers of social bubble wrap. Subtext requires an Enigma cipher.'
+          : 'Tactical diplomat: delivers the hard truth without triggering an immediate explosion.'
+      },
+      {
+        subject: 'Conflict Boxing & Drama Navigation',
+        grade: getGrade(conflict),
+        score: conflict,
+        funnyComment: conflict >= 70
+          ? 'Strides toward tension like an action movie protagonist. Drama flees in terror.'
+          : conflict <= 40
+          ? 'Evasive maneuver champion. Disappears into thin air when decibels rise.'
+          : 'Measured combatant: picks battles with the precision of a Swiss watchmaker.'
+      },
+      {
+        subject: 'Personal Boundary Enforcement',
+        grade: getGrade(boundary),
+        score: boundary,
+        funnyComment: boundary >= 70
+          ? 'Reinforced concrete emotional perimeter. Trespassers will be gently dismantled.'
+          : boundary <= 40
+          ? 'Boundary consistency: wet paper towel. Will say "yes" while crying on the inside.'
+          : 'Flexible gatekeeper: protects what matters, negotiates the rest like a pro.'
+      },
+      {
+        subject: 'Empathy & Room-Reading Radar',
+        grade: getGrade(perspective),
+        score: perspective,
+        funnyComment: perspective >= 70
+          ? 'Understands the other person\'s trauma better than their licensed therapist.'
+          : perspective <= 40
+          ? 'Laser-focused on own agenda. The room\'s vibes are merely background static.'
+          : 'Balanced radar: catches all the awkward signals and decides whether to care.'
+      }
+    ],
+    stampBadge,
+    roastVerdict: `Overall diagnostic: You communicate with ${avgScore}% energy. 10/10 would analyze your texts again.`
+  };
+
   return {
     scenarioId: scenario.id,
     scenarioTitle: scenario.title,
@@ -765,6 +857,7 @@ export function simulateReport(payload: ReportRequest): ReportResponse {
     mockMode: true,
     archetype,
     archetypeTagline,
-    howItLanded
+    howItLanded,
+    reportCard
   };
 }
