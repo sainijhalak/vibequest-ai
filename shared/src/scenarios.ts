@@ -17,7 +17,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Spontaneous, creative, gets overwhelmed under job stress and retreats into quiet solitude.',
       avatarSeed: 'maya',
       accentColor: '#E5A93B',
-      traits: ['creative', 'overwhelmed', 'apologetic']
+      traits: ['creative', 'overwhelmed', 'apologetic'],
+      quirks: {
+        typingSpeedMs: 1300,
+        emojiHabit: 'Uses 😂 when nervous, bursts of fast casual texts',
+        messageStyle: 'Spontaneous and self-deprecating',
+        initialMood: 'hesitant',
+        initialMoodDesc: 'Nervous about reconnecting after 8 months of silence'
+      }
     },
     openingMessage: 'Hey stranger! Remember me? 😂 Honestly was just thinking about that chaotic road trip we took and had to see how you were doing.',
     maxTurns: 3,
@@ -73,7 +80,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Ambitious, takes on too much work, hates disappointing people but repeatedly fails at calendar management.',
       avatarSeed: 'jordan',
       accentColor: '#00E599',
-      traits: ['workaholic', 'apologetic', 'overextended']
+      traits: ['workaholic', 'apologetic', 'overextended'],
+      quirks: {
+        typingSpeedMs: 950,
+        emojiHabit: 'Uses 😭 and rushed ellipsis (...) under stress',
+        messageStyle: 'Rapid-fire, over-apologetic, frantic calendar anxiety',
+        initialMood: 'annoyed',
+        initialMoodDesc: 'Stressed by client escalation, dreading letting you down again'
+      }
     },
     openingMessage: 'Ugh I am SO sorry... Work just exploded with a client escalation. I am literally stuck at my desk until 9pm. Can we please reschedule for next week? So sorry to do this again 😭',
     maxTurns: 3,
@@ -129,7 +143,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Casual, easily distracted, loves memes, does not realize when plans get buried.',
       avatarSeed: 'leo',
       accentColor: '#3D465E',
-      traits: ['distracted', 'casual', 'humorous']
+      traits: ['distracted', 'casual', 'humorous'],
+      quirks: {
+        typingSpeedMs: 750,
+        emojiHabit: 'Meme attachments, 😂😂😂 laughs, short punchy texts',
+        messageStyle: 'Casual group-chat banter, easily distracted by media',
+        initialMood: 'amused',
+        initialMoodDesc: 'Distracted by internet memes, unaware logistics got buried'
+      }
     },
     openingMessage: '[Leo posted a dog video] 😂😂😂 Literally me every single Monday morning.',
     maxTurns: 3,
@@ -180,7 +201,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Prides himself on razor-sharp banter; defers accountability by claiming people are "too sensitive".',
       avatarSeed: 'marcus',
       accentColor: '#FF5C35',
-      traits: ['sharp-tongued', 'defensive', 'socially-competitive']
+      traits: ['sharp-tongued', 'defensive', 'socially-competitive'],
+      quirks: {
+        typingSpeedMs: 1100,
+        emojiHabit: 'Uses 😅 and sarcastic shrugs',
+        messageStyle: 'Sharp, performative wit; defers responsibility behind "banter"',
+        initialMood: 'amused',
+        initialMoodDesc: 'Riding high on table laughter, assuming everyone enjoyed the joke'
+      }
     },
     openingMessage: 'Haha come on, you know I love you! Do not look at me like that, it was just harmless banter! 😅',
     maxTurns: 3,
@@ -236,7 +264,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'High performer, moves fast, image-conscious, gets defensive when challenged on professional ethics.',
       avatarSeed: 'elena',
       accentColor: '#9DA5B4',
-      traits: ['ambitious', 'strategic', 'image-conscious']
+      traits: ['ambitious', 'strategic', 'image-conscious'],
+      quirks: {
+        typingSpeedMs: 1600,
+        emojiHabit: 'Zero emojis; impeccably punctuated, structured sentences',
+        messageStyle: 'Corporate polish, strategic diplomacy, image preservation',
+        initialMood: 'neutral',
+        initialMoodDesc: 'Celebrating leadership praise, expecting swift alignment'
+      }
     },
     openingMessage: 'Great call! The director seemed really impressed with the direction. We set ourselves up nicely for the quarterly review.',
     maxTurns: 3,
@@ -287,7 +322,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Thoughtful, appreciative of dry banter, allergic to sleazy pickup lines; loves authentic, grounded wit.',
       avatarSeed: 'sam',
       accentColor: '#00E599',
-      traits: ['observant', 'dry-humor', 'attuned']
+      traits: ['observant', 'dry-humor', 'attuned'],
+      quirks: {
+        typingSpeedMs: 1250,
+        emojiHabit: 'Parenthetical stage directions [smiles slightly], quiet punctuation',
+        messageStyle: 'Thoughtful, observant, dry literary teasing',
+        initialMood: 'hesitant',
+        initialMoodDesc: 'Testing whether the spark and eye contact are mutual'
+      }
     },
     openingMessage: '[Sam looks up from the book, notices you looking, and smiles slightly before closing it] Do not tell me—you are judging my reading pace, aren\'t you?',
     maxTurns: 3,
@@ -334,7 +376,14 @@ export const SCENARIOS: ScenarioDefinition[] = [
       bio: 'Expressive, values poise, loves intellectual curiosity and playful social chemistry.',
       avatarSeed: 'chloe',
       accentColor: '#FF5C35',
-      traits: ['charismatic', 'cultured', 'witty']
+      traits: ['charismatic', 'cultured', 'witty'],
+      quirks: {
+        typingSpeedMs: 1450,
+        emojiHabit: 'Curated vocabulary, expressive phrasing, measured cadence',
+        messageStyle: 'Sophisticated, culturally poised, subtle romantic intrigue',
+        initialMood: 'warm',
+        initialMoodDesc: 'Intrigued by your focus at the gallery, initiating conversation'
+      }
     },
     openingMessage: 'You know, you have been staring at that brushwork with more intensity than the artist probably had when painting it. I could not help admiring that kind of focus.',
     maxTurns: 3,

@@ -1,10 +1,13 @@
 import React from 'react';
+import { CharacterMood } from '@vibequest/shared';
 
 interface CharacterAvatarProps {
   seed: string;
   name: string;
   accentColor?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  mood?: CharacterMood;
+  showMoodBadge?: boolean;
   className?: string;
 }
 
@@ -13,6 +16,8 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
   name,
   accentColor = '#FF5C35',
   size = 'md',
+  mood = 'neutral',
+  showMoodBadge = false,
   className = ''
 }) => {
   const sizeMap = {
@@ -20,6 +25,26 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
     md: 'w-10 h-10',
     lg: 'w-12 h-12',
     xl: 'w-16 h-16',
+  };
+
+  const moodAuraMap: Record<CharacterMood, string> = {
+    amused: 'ring-2 ring-amber/80 shadow-[0_0_12px_rgba(229,169,59,0.35)]',
+    warm: 'ring-2 ring-mint/80 shadow-[0_0_12px_rgba(0,229,153,0.35)]',
+    annoyed: 'ring-2 ring-coral/80 shadow-[0_0_12px_rgba(255,92,53,0.35)]',
+    hesitant: 'ring-2 ring-amber/50 border-amber/40',
+    guarded: 'ring-2 ring-ink-600 border-ink-500',
+    relieved: 'ring-2 ring-teal-400/80 shadow-[0_0_10px_rgba(45,212,191,0.3)]',
+    neutral: 'ring-0 border-ink-700'
+  };
+
+  const moodDotColor: Record<CharacterMood, string> = {
+    amused: 'bg-amber',
+    warm: 'bg-mint',
+    annoyed: 'bg-coral',
+    hesitant: 'bg-amber-400',
+    guarded: 'bg-ink-400',
+    relieved: 'bg-teal-400',
+    neutral: 'bg-ink-500'
   };
 
   const renderGlyph = () => {
@@ -95,10 +120,16 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
 
   return (
     <div
-      aria-label={`Avatar of ${name}`}
-      className={`relative inline-flex items-center justify-center rounded-xl bg-ink-900 border border-ink-700 overflow-hidden flex-shrink-0 ${sizeMap[size]} ${className}`}
+      aria-label={`Avatar of ${name} (${mood})`}
+      className={`relative inline-flex items-center justify-center rounded-xl bg-ink-900 border overflow-hidden flex-shrink-0 transition-all duration-300 ${sizeMap[size]} ${moodAuraMap[mood]} ${className}`}
     >
       {renderGlyph()}
+      {showMoodBadge && (
+        <span
+          title={`Mood: ${mood}`}
+          className={`absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full border border-ink-950 ${moodDotColor[mood]}`}
+        />
+      )}
     </div>
   );
 };

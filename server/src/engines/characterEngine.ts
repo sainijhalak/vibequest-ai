@@ -3,7 +3,8 @@ import {
   Turn,
   ChoiceOption,
   TurnResponse,
-  ScenarioDefinition
+  ScenarioDefinition,
+  simulateTurn
 } from '@vibequest/shared';
 
 export class CharacterEngine {
@@ -114,46 +115,23 @@ STRICT ROLEPLAY GUIDELINES:
     scenario: ScenarioDefinition,
     userMessage: string,
     turnCount: number,
-    canContinue: boolean
+    canContinue: boolean,
+    history: Turn[] = []
   ): TurnResponse {
-    const text = userMessage.toLowerCase();
-    let reply = 'I hear you. That gives me a lot to think about.';
-
-    if (scenario.id === 'unexpected-message') {
-      if (!canContinue) {
-        reply = 'I completely respect that. Let us definitely grab coffee when things slow down for you. Talk soon!';
-      } else if (text.includes('bermuda') || text.includes('😂')) {
-        reply = 'Haha fair call! I deserve that. Work swallowed me whole and then I felt super awkward reaching out after so long. But I really missed your energy!';
-      } else if (text.includes('eight months') || text.includes('why') || text.includes('prompted')) {
-        reply = 'Oof, you are completely right. I felt terrible about dropping off. I had a rough job transition, but I wanted to apologize and reconnect.';
-      } else {
-        reply = 'I know it was out of the blue, but I am really glad you replied. Life has been a whirlwind.';
-      }
-    } else if (scenario.id === 'boundary-joke') {
-      if (!canContinue) {
-        reply = 'Yeah, you are right. That was out of line and I respect you calling me out on it. Next round is on me.';
-      } else if (text.includes('not cool') || text.includes('rough chapter') || text.includes('do not do that')) {
-        reply = 'Man... honestly, hearing you say that makes me realize it was a cheap shot. My bad, seriously. I will tone it down.';
-      } else {
-        reply = 'Hey, I did not mean to strike a nerve. Let us drop that topic and enjoy the night.';
-      }
-    } else if (scenario.id === 'cafe-spark') {
-      if (!canContinue) {
-        reply = 'Haha deal! Well, I am definitely glad you said something. Let us compare notes when I finish the book!';
-      } else if (text.includes('chapter 12') || text.includes('plot twist')) {
-        reply = 'Wait, do not say another word! Chapter 12?! Now my heart rate is up. Okay, you have to sit here and tell me with zero spoilers.';
-      } else {
-        reply = 'Haha thank you. It is rare to meet someone who actually knows this author. I am Sam, by the way.';
-      }
-    }
-
-    return {
-      characterReply: reply,
-      turnCount,
-      canContinue,
-      nextChoices: canContinue ? this.getDynamicFollowupChoices(scenario, turnCount) : [],
-      mockMode: true
-    };
+    return simulateTurn({
+      scenarioId: scenario.id,
+      userMessage,
+      isCustom: false,
+      history: [
+        ...history,
+        {
+          turnNumber: turnCount,
+          speaker: 'user',
+          text: userMessage,
+          timestamp: new Date().toISOString()
+        }
+      ]
+    });
   }
 
   public static getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumber: number): ChoiceOption[] {

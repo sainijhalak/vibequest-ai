@@ -124,4 +124,21 @@ describe('VibeQuest AI API Integration Tests', () => {
     // Express json parser with limit rejects with 413 Payload Too Large
     expect(res.status).toBe(413);
   });
+
+  it('POST /api/scenario/turn returns character emotional mood and description', async () => {
+    const res = await request(app)
+      .post('/api/scenario/turn')
+      .send({
+        scenarioId: 'unexpected-message',
+        userMessage: 'Look who decided to resurface from the Bermuda Triangle! 😂',
+        choiceId: 'opt_playful_tease',
+        history: []
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.characterMood).toBe('amused');
+    expect(res.body.data.characterMoodDescription).toBeDefined();
+    expect(typeof res.body.data.characterMoodDescription).toBe('string');
+  });
 });
+

@@ -52,6 +52,26 @@ export const ChoiceOptionSchema = z.object({
 });
 export type ChoiceOption = z.infer<typeof ChoiceOptionSchema>;
 
+export const CharacterMoodSchema = z.enum([
+  'neutral',
+  'warm',
+  'annoyed',
+  'amused',
+  'hesitant',
+  'guarded',
+  'relieved'
+]);
+export type CharacterMood = z.infer<typeof CharacterMoodSchema>;
+
+export const CharacterQuirksSchema = z.object({
+  typingSpeedMs: z.number().int().positive().default(1200),
+  emojiHabit: z.string().min(1),
+  messageStyle: z.string().min(1),
+  initialMood: CharacterMoodSchema.default('neutral'),
+  initialMoodDesc: z.string().default('Assessing the conversational temperature')
+});
+export type CharacterQuirks = z.infer<typeof CharacterQuirksSchema>;
+
 export const CharacterMetaSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -59,7 +79,8 @@ export const CharacterMetaSchema = z.object({
   bio: z.string().min(1),
   avatarSeed: z.string().min(1),
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  traits: z.array(z.string()).min(1)
+  traits: z.array(z.string()).min(1),
+  quirks: CharacterQuirksSchema.optional()
 });
 export type CharacterMeta = z.infer<typeof CharacterMetaSchema>;
 
@@ -101,7 +122,7 @@ export const TurnRequestSchema = z.object({
   scenarioId: z.string().min(1),
   userMessage: z.string().trim().min(1, 'User message cannot be empty').max(800),
   choiceId: z.string().optional(),
-  isCustom: z.boolean().default(false),
+  isCustom: z.boolean().optional().default(false),
   history: z.array(TurnSchema).max(20).default([])
 });
 export type TurnRequest = z.infer<typeof TurnRequestSchema>;
@@ -111,7 +132,9 @@ export const TurnResponseSchema = z.object({
   turnCount: z.number().int().nonnegative(),
   canContinue: z.boolean(),
   nextChoices: z.array(ChoiceOptionSchema).default([]),
-  mockMode: z.boolean()
+  mockMode: z.boolean(),
+  characterMood: CharacterMoodSchema.optional(),
+  characterMoodDescription: z.string().optional()
 });
 export type TurnResponse = z.infer<typeof TurnResponseSchema>;
 
