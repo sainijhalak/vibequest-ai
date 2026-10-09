@@ -1,4 +1,4 @@
-# ⚡ VibeQuest AI
+# VibeQuest AI
 
 > **"Play the moment. Discover your vibe."**
 > An interactive social intelligence game where users play simulated conversational scenarios with Claude-powered characters, followed by evidence-backed, non-judgmental behavioral reflections.
@@ -12,20 +12,20 @@
 
 ---
 
-## 🌟 Highlights & Philosophy
+## Highlights & Philosophy
 
-- 🎮 **Entertaining First, Insightful Second**: Not a boring 30-question personality test, clinical diagnostic form, or corporate evaluation.
-- 🎭 **Dual-Engine AI Architecture**: Decouples in-character roleplay (`CharacterEngine`) from behavioral debriefs (`ReflectionEngine`).
-- 🧮 **Deterministic Mathematical Scoring**: Spectrum scores (0-100) are computed mathematically via vector deltas — never hallucinated by an LLM prompt.
-- 🧾 **Verifiable Evidence Receipts**: Every score is accompanied by explicit turn-by-turn receipts quoting the user's actual choices.
-- ⚖️ **Epistemic Humility**: Acknowledges what cannot be known from a game; flags uncertainty (`insufficient_evidence` when data is thin; `context_dependent` when choices conflict).
-- 🎨 **Anti-AI-Slop Visual Direction**: "Midnight Dispatch" aesthetic featuring deep ink charcoal (`#0D0F15`), fire coral accents (`#FF5C35`), custom procedural geometric SVG avatars, and real typographic hierarchy. No purple-blue gradients, glowing blobs, or emoji icons.
-- 🛡️ **Hardened Security**: Prompt-injection isolation (`<user_message>` tagging), Helmet HTTP headers, CORS filtering, 20kb request body limits, and IP rate limiting (120 req / 15 min).
-- ✈️ **Zero-Cost Offline Simulation**: Includes a full deterministic Mock AI mode (`MOCK_AI=true`), allowing complete local development and testing without an Anthropic API key.
+-  **Entertaining First, Insightful Second**: Not a boring 30-question personality test, clinical diagnostic form, or corporate evaluation.
+-  **Dual-Engine AI Architecture**: Decouples in-character roleplay (`CharacterEngine`) from behavioral debriefs (`ReflectionEngine`).
+-  **Deterministic Mathematical Scoring**: Spectrum scores (0-100) are computed mathematically via vector deltas — never hallucinated by an LLM prompt.
+-  **Verifiable Evidence Receipts**: Every score is accompanied by explicit turn-by-turn receipts quoting the user's actual choices.
+-  **Epistemic Humility**: Acknowledges what cannot be known from a game; flags uncertainty (`insufficient_evidence` when data is thin; `context_dependent` when choices conflict).
+-  **Anti-AI-Slop Visual Direction**: "Midnight Dispatch" aesthetic featuring deep ink charcoal (`#0D0F15`), fire coral accents (`#FF5C35`), custom procedural geometric SVG avatars, and real typographic hierarchy. No purple-blue gradients, glowing blobs, or emoji icons.
+-  **Hardened Security**: Prompt-injection isolation (`<user_message>` tagging), Helmet HTTP headers, CORS filtering, 20kb request body limits, and IP rate limiting (120 req / 15 min).
+-  **Zero-Cost Offline Simulation**: Includes a full deterministic Mock AI mode (`MOCK_AI=true`), allowing complete local development and testing without an Anthropic API key.
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
 - Node.js v18.0.0+ (Tested on Node.js v24.21.0)
@@ -73,7 +73,7 @@ Compiles `@vibequest/shared`, `vibequest-ai-server`, and bundles `vibequest-ai-c
 
 ---
 
-## 🎮 The Three Game Modes & Scenarios
+## The Three Game Modes & Scenarios
 
 | Mode | Scenarios Available | Core Interpersonal Dynamics |
 | :--- | :--- | :--- |
@@ -83,7 +83,7 @@ Compiles `@vibequest/shared`, `vibequest-ai-server`, and bundles `vibequest-ai-c
 
 ---
 
-## 📐 The Five Behavioral Dimensions
+##  The Five Behavioral Dimensions
 
 1. **Directness vs. Diplomacy** ($0 = \text{Diplomatic / Indirect}$, $100 = \text{Direct / Candid}$)
 2. **Speed vs. Deliberation** ($0 = \text{Deliberate / Patient}$, $100 = \text{Immediate / Swift}$)
@@ -95,36 +95,36 @@ All scores start at baseline 50, accumulate choice impacts, and are clamped stri
 
 ---
 
-## 📚 Complete Documentation Suite
+## Complete Documentation Suite
 
 Detailed architectural specifications and learning guides are located in [`docs/`](docs/):
 
-- 🎨 [`docs/DESIGN.md`](docs/DESIGN.md) — Visual design specification and anti-AI-slop guidelines.
-- 🏗️ [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Monorepo layout, dual-engine design, and security architecture.
-- 🤖 [`docs/AI_SYSTEM.md`](docs/AI_SYSTEM.md) — Claude prompts, token budgets, and `<user_message>` sandboxing.
-- 🎲 [`docs/GAME_LOGIC.md`](docs/GAME_LOGIC.md) — Scoring formulas, vector calculations, and uncertainty rules.
-- 🖌️ [`docs/FRONTEND_GUIDE.md`](docs/FRONTEND_GUIDE.md) — React component hierarchy, theme tokens, and SVG avatars.
-- ⚙️ [`docs/BACKEND_GUIDE.md`](docs/BACKEND_GUIDE.md) — Express middleware, Zod validation, and API routes.
-- 🔄 [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) — End-to-end data lifecycle with sequence diagrams.
-- 🧪 [`docs/TESTING.md`](docs/TESTING.md) — Vitest and Supertest testing strategy and test matrix.
-- 🚀 [`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md) — Local development, Vercel frontend, and Render backend guides.
-- 🛠️ [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — Step-by-step guide to add new scenarios, avatars, and dimensions.
-- 🗺️ [`docs/LEARNING_ROADMAP.md`](docs/LEARNING_ROADMAP.md) — Core software engineering concepts and 3 practice challenges.
-- 🗺️ [`docs/FILE_MAP.md`](docs/FILE_MAP.md) — Comprehensive directory and file registry.
-- 📋 [`docs/IMPLEMENTATION_LOG.md`](docs/IMPLEMENTATION_LOG.md) — Command verification log and AI-slop audit.
+-  [`docs/DESIGN.md`](docs/DESIGN.md) — Visual design specification and anti-AI-slop guidelines.
+-  [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Monorepo layout, dual-engine design, and security architecture.
+-  [`docs/AI_SYSTEM.md`](docs/AI_SYSTEM.md) — Claude prompts, token budgets, and `<user_message>` sandboxing.
+-  [`docs/GAME_LOGIC.md`](docs/GAME_LOGIC.md) — Scoring formulas, vector calculations, and uncertainty rules.
+-  [`docs/FRONTEND_GUIDE.md`](docs/FRONTEND_GUIDE.md) — React component hierarchy, theme tokens, and SVG avatars.
+-  [`docs/BACKEND_GUIDE.md`](docs/BACKEND_GUIDE.md) — Express middleware, Zod validation, and API routes.
+-  [`docs/DATA_FLOW.md`](docs/DATA_FLOW.md) — End-to-end data lifecycle with sequence diagrams.
+-  [`docs/TESTING.md`](docs/TESTING.md) — Vitest and Supertest testing strategy and test matrix.
+-  [`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md) — Local development, Vercel frontend, and Render backend guides.
+-  [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — Step-by-step guide to add new scenarios, avatars, and dimensions.
+-  [`docs/LEARNING_ROADMAP.md`](docs/LEARNING_ROADMAP.md) — Core software engineering concepts and 3 practice challenges.
+-  [`docs/FILE_MAP.md`](docs/FILE_MAP.md) — Comprehensive directory and file registry.
+-  [`docs/IMPLEMENTATION_LOG.md`](docs/IMPLEMENTATION_LOG.md) — Command verification log and AI-slop audit.
 
 For learners, read [`LEARNING_MODE.md`](LEARNING_MODE.md) for a line-by-line mentorship walkthrough.
 
 ---
 
-## 🚢 Deployment
+## Deployment
 
 - **Frontend**: Deployable to **Vercel** with one command (`npx vercel` inside `client/`).
 - **Backend**: Deployable to **Render** via Blueprint with [`render.yaml`](render.yaml).
 
 ---
 
-## 📜 License & Epistemic Notice
+## License & Epistemic Notice
 
 MIT License.
 
