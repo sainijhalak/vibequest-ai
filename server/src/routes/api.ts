@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ScenarioController } from '../controllers/scenarioController.js';
+import { RoastController } from '../controllers/roastController.js';
 
 export const apiRouter = Router();
 
@@ -15,3 +16,5 @@ apiRouter.post('/scenario/turn', ScenarioController.handleTurn);
 apiRouter.post('/score', ScenarioController.handleScore);
 apiRouter.post('/report', ScenarioController.handleReport);
 
+// Buster Roast Battle & Vibe Check endpoint
+apiRouter.post('/roast', RoastController.handleRoast);

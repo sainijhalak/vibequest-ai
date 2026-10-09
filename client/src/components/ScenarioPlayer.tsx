@@ -17,6 +17,7 @@ import { ProgressBar } from './ui/ProgressBar.js';
 import { EpisodeTitleCard } from './ui/EpisodeTitleCard.js';
 import { getTheme } from '../themes/scenarioThemes.js';
 import { SceneIllustration } from './ui/SceneIllustration.js';
+import { Scenario3DCompanion } from './three/Scenario3DCompanion.js';
 
 interface ScenarioPlayerProps {
   scenario: ScenarioDefinition;
@@ -139,7 +140,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         setCharacterMoodDesc(response.characterMoodDescription);
       }
 
-      if (nextTurnNum >= 12) {
+      if (nextTurnNum >= scenario.maxTurns) {
         setIsFinished(true);
         soundFx.triggerHaptic([20, 40, 20]);
       }
@@ -207,7 +208,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         setCharacterMoodDesc(response.characterMoodDescription);
       }
 
-      if (nextTurnNum >= 12) {
+      if (nextTurnNum >= scenario.maxTurns) {
         setIsFinished(true);
         soundFx.triggerHaptic([20, 40, 20]);
       }
@@ -386,8 +387,13 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <div className="px-3.5 py-1.5 rounded-full border-2 border-black text-xs font-mono font-black tracking-wide bg-comic-cyan text-black shadow-cartoon-sm">
+              <div className="flex items-center gap-3">
+                <Scenario3DCompanion
+                  mood={characterMood}
+                  turnNumber={userTurnsCount}
+                  characterName={scenario.character.name}
+                />
+                <div className="px-3.5 py-1.5 rounded-full border-2 border-black text-xs font-mono font-black tracking-wide bg-comic-cyan text-black shadow-cartoon-sm hidden sm:inline-block">
                   {theme.environment}
                 </div>
               </div>
@@ -520,28 +526,6 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {userTurnsCount >= 2 && (
-              <div className="bg-comic-yellow p-4 rounded-2xl border-3 border-black shadow-cartoon flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl animate-bounce">🎓</span>
-                  <div>
-                    <span className="font-display font-black text-sm text-black block">
-                      VIBE REPORT CARD UNLOCKED! ({userTurnsCount} turns recorded)
-                    </span>
-                    <span className="font-sans font-medium text-xs text-ink-800">
-                      You can keep chatting or grade your social performance now!
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsFinished(true)}
-                  className="bg-comic-pink hover:bg-comic-orange text-white font-display font-black text-xs px-4 py-2.5 rounded-xl border-3 border-black shadow-cartoon-sm hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
-                >
-                  ⭐ GRADE MY VIBE NOW →
-                </button>
-              </div>
-            )}
 
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="bg-black text-white font-black px-2.5 py-1 rounded-md border-2 border-black shadow-cartoon-sm">
@@ -600,14 +584,14 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
               </form>
             )}
 
-            {/* End Conversation Early Option */}
-            <div className="pt-2 text-center">
+            {/* On-Demand Finish and Grade Option */}
+            <div className="pt-3 text-center flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsFinished(true)}
-                className="font-mono text-xs font-bold text-paper-300 hover:text-white underline transition-colors"
+                className="bg-white hover:bg-comic-yellow text-black font-display font-black text-xs px-5 py-2.5 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center gap-2 cursor-pointer"
               >
-                End scenario here & review what we observed so far
+                <span>📜 FINISH & GENERATE REPORT CARD ANYTIME ({userTurnsCount} turns recorded)</span>
               </button>
             </div>
           </div>

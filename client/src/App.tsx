@@ -110,57 +110,75 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ink-950 text-paper-50 font-sans selection:bg-comic-pink selection:text-white flex flex-col justify-between">
-      {/* Global Top Comic Nav Bar */}
-      <nav className="bg-black/80 backdrop-blur border-b-3 border-black py-2.5 px-4 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      {/* Global Top Comic Nav Bar matching Screenshot 2026-10-09 222149.png */}
+      <nav className="bg-black/95 backdrop-blur border-b-4 border-black py-3 px-4 sm:px-6 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Left Brand with Green Dot & Tagline */}
           <div
             onClick={() => switchTab('landing')}
-            className="flex items-center gap-2 cursor-pointer select-none"
+            className="flex items-center gap-3 cursor-pointer select-none"
           >
-            <span className="text-xl">✨</span>
-            <span className="font-display font-black text-lg text-white tracking-tight uppercase">
-              VIBEQUEST <span className="text-comic-yellow">3D</span>
+            <div className="w-3.5 h-3.5 rounded-full bg-comic-green border-2 border-black animate-bounce flex-shrink-0" />
+            <span className="font-display font-black text-xl sm:text-2xl text-white tracking-tight uppercase flex items-center gap-2">
+              VIBEQUEST{' '}
+              <span className="bg-comic-yellow text-black font-mono text-xs px-2 py-0.5 rounded-lg border-2 border-black font-black">
+                3D CARTOON
+              </span>
+            </span>
+            <span className="hidden lg:inline font-mono text-xs text-paper-300 pl-3 border-l-2 border-paper-400">
+              Interactive Social Game & Comedy Report Card
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right Header Navigation - Keep all 3 options + Clear Data */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+            {/* 1. SCENARIOS */}
             <button
               onClick={() => switchTab('landing')}
               type="button"
-              className={`font-display font-black text-xs px-3.5 py-1.5 rounded-xl border-2 border-black transition-all ${
+              className={`font-display font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 active:translate-y-0 ${
                 view === 'landing' || view === 'player'
-                  ? 'bg-comic-yellow text-black shadow-cartoon-sm scale-105'
+                  ? 'bg-comic-yellow text-black scale-105'
                   : 'bg-white text-black hover:bg-comic-yellow'
               }`}
             >
               🎮 SCENARIOS
             </button>
 
+            {/* 2. ROAST ARENA (Pink Pill) */}
             <button
               onClick={() => switchTab('roast')}
               type="button"
-              className={`font-display font-black text-xs px-3.5 py-1.5 rounded-xl border-2 border-black transition-all ${
+              className={`font-display font-black text-xs px-4 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 ${
                 view === 'roast'
-                  ? 'bg-comic-pink text-white shadow-cartoon-sm scale-105'
-                  : 'bg-white text-black hover:bg-comic-pink hover:text-white'
+                  ? 'bg-comic-pink text-white scale-105 ring-2 ring-white'
+                  : 'bg-comic-pink hover:bg-comic-orange text-white'
               }`}
             >
-              🔥 ROAST BOT
+              <span>🔥 ROAST ARENA</span>
             </button>
 
-            {activeReport && (
-              <button
-                onClick={() => switchTab('report')}
-                type="button"
-                className={`font-display font-black text-xs px-3.5 py-1.5 rounded-xl border-2 border-black transition-all ${
-                  view === 'report'
-                    ? 'bg-comic-cyan text-black shadow-cartoon-sm scale-105'
-                    : 'bg-white text-black hover:bg-comic-cyan'
-                }`}
-              >
-                📜 REPORT CARD
-              </button>
-            )}
+            {/* 3. REPORT CARD */}
+            <button
+              onClick={() => switchTab('report')}
+              type="button"
+              className={`font-display font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 active:translate-y-0 ${
+                view === 'report'
+                  ? 'bg-comic-cyan text-black scale-105'
+                  : 'bg-white text-black hover:bg-comic-cyan'
+              }`}
+            >
+              📜 REPORT CARD {activeReport ? '★' : ''}
+            </button>
+
+            {/* Clear Data Option */}
+            <button
+              onClick={handleClearData}
+              type="button"
+              className="font-mono text-xs text-paper-400 hover:text-white underline decoration-paper-400 underline-offset-4 transition-colors ml-1"
+            >
+              Clear data
+            </button>
           </div>
         </div>
       </nav>

@@ -245,6 +245,15 @@ export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumb
         ]
       },
       {
+        id: `opt_turn_${t}_coffee`,
+        label: 'Suggest in-person catch up',
+        text: 'Good to hear from you. Let us grab a quick coffee this weekend and catch up properly.',
+        impacts: [
+          { dimension: 'directness', delta: 2, reason: 'Initiated direct in-person reconnection' },
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Proactively stepped into reconnection' }
+        ]
+      },
+      {
         id: `opt_maya_t${t}_coffee_plan`,
         label: 'Propose In-Person Catch Up',
         text: 'Texts are terrible for deep debriefs. Let us grab a quiet coffee this weekend and catch up properly.',
@@ -543,116 +552,415 @@ export function simulateTurn(payload: TurnRequest): TurnResponse {
   const canContinue = userTurnCount < scenario.maxTurns;
   const text = payload.userMessage.toLowerCase();
 
-  let reply = 'I hear what you are saying, and I appreciate you laying it out so clearly for me.';
+  // Track past character replies in this session to strictly prevent repetition
+  const previousReplies = new Set(
+    payload.history
+      .filter(t => t.speaker === 'character')
+      .map(t => t.text.trim())
+  );
+
+  let reply = '';
   let characterMood = scenario.character.quirks?.initialMood || 'neutral';
   let characterMoodDescription = scenario.character.quirks?.initialMoodDesc || 'Assessing conversational temperature';
 
+  // Helper to ensure a reply has never been spoken in this conversation
+  const selectUniqueReply = (candidates: Array<{ text: string; mood: typeof characterMood; desc: string }>) => {
+    for (const c of candidates) {
+      if (!previousReplies.has(c.text.trim())) {
+        return c;
+      }
+    }
+    // If all candidates somehow seen, create turn-indexed fallback
+    const last = candidates[candidates.length - 1];
+    return {
+      text: `${last.text} [Turn ${userTurnCount} beat]`,
+      mood: last.mood,
+      desc: last.desc
+    };
+  };
+
   if (scenario.id === 'unexpected-message') {
     if (!canContinue) {
-      reply = 'I am really glad we had this conversation tonight. It was scary reaching out after vanishing, but you were so real with me. Let us grab that coffee when you are free—no pressure, on your terms.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Deeply relieved, grateful for mutual emotional honesty';
-    } else if (text.includes('bermuda') || text.includes('😂') || text.includes('resurface')) {
-      reply = 'Haha fair call! I deserve that roast completely. Work swallowed me whole and then the longer I waited, the more awkward I felt reaching out. But I really missed your energy and had to break the silence.';
-      characterMood = 'amused';
-      characterMoodDescription = 'Amused and disarmed by your playful tease; awkward tension dissolved';
-    } else if (text.includes('eight months') || text.includes('prompted') || text.includes('silence')) {
-      reply = 'Oof, seeing "eight months" typed out hits like a truck. You are completely right to call it out. I had a brutal transition leaving my design studio and crawled into a shell, but it wasn\'t fair to leave you hanging. I wanted to apologize properly.';
-      characterMood = 'hesitant';
-      characterMoodDescription = 'Contrite, taking full accountability for the ghosting';
-    } else if (text.includes('hurt') || text.includes('cautious') || text.includes('boundary')) {
-      reply = 'I completely understand why you would be guarded. Vanishing like that was selfish, and I do not expect you to just pretend it did not happen. If you need space or want to take things slow, I fully respect that.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Humbled and respectful, honoring your declared boundary';
-    } else if (text.includes('closure') || text.includes('actually happened')) {
-      reply = 'Honestly? I had a major panic attack in October, dropped client contracts, and felt like such a failure that I couldn\'t face anyone who knew me as "the thriving creative". It was pure shame. You deserved an explanation back then.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Vulnerable, opening up about hidden burnout and shame';
+      const pick = selectUniqueReply([
+        {
+          text: 'I am really glad we had this conversation tonight. It was terrifying hitting send after vanishing, but you were so honest with me. Let us grab that coffee when you are free—strictly on your terms.',
+          mood: 'warm',
+          desc: 'Deeply relieved, grateful for mutual emotional closure'
+        },
+        {
+          text: 'Thank you for giving me the space to explain myself instead of just slamming the door shut. Take all the time you need, and the invite still stands whenever you are ready.',
+          mood: 'warm',
+          desc: 'Humbled and appreciative of your calm composure'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('bermuda') || text.includes('😂') || text.includes('resurface') || text.includes('joke')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Haha fair call! I deserve that roast completely. Work swallowed me whole and then the longer I waited, the more awkward I felt reaching out. But I really missed your energy and had to break the silence.',
+          mood: 'amused',
+          desc: 'Amused and disarmed by your playful tease; tension dissolved'
+        },
+        {
+          text: 'I know, I know—definitely candidate for Worst Friend of the Year award! But seriously, hearing you laugh about it takes such a weight off my chest.',
+          mood: 'amused',
+          desc: 'Playfully defensive, eager to rebuild warmth'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('eight months') || text.includes('ghost') || text.includes('silence') || text.includes('prompted')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Oof, seeing "eight months" typed out hits like a truck. You are completely right to call it out. I had a brutal transition leaving my design studio and crawled into a shell, but it was not fair to leave you hanging.',
+          mood: 'hesitant',
+          desc: 'Contrite, taking full accountability for the silence'
+        },
+        {
+          text: 'I will not make cheap excuses—it was selfish on my part. The longer the weeks passed, the more ashamed I felt about how long I had let it sit. I wanted to apologize to your face.',
+          mood: 'hesitant',
+          desc: 'Open and unguarded, admitting shame'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('hurt') || text.includes('cautious') || text.includes('boundary') || text.includes('distance')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'I completely understand why you would be guarded. Vanishing like that broke trust, and I do not expect you to just pretend it never happened. If you need space or want to keep this at arm\'s length, I fully respect that.',
+          mood: 'guarded',
+          desc: 'Humbled and respectful, honoring your declared boundary'
+        },
+        {
+          text: 'I hear you loud and clear. You have every right to protect your peace. Even if this is as far as we go, I wanted to ensure you knew the silence was about my own chaos, never you.',
+          mood: 'relieved',
+          desc: 'Accepting your terms gracefully without pressure'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('coffee') || text.includes('weekend') || text.includes('catch up')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Saturday afternoon around 2 PM at that quiet spot by the park? I will bring my sketchbook and buy whatever pastries you want as down payment on my friendship debt.',
+          mood: 'warm',
+          desc: 'Excited and motivated to reconnect in person'
+        },
+        {
+          text: 'That sounds amazing. Let us do something low-key—no big intense interrogation, just catching up on real life. Pick your favorite café and I will be there.',
+          mood: 'warm',
+          desc: 'Eager and attentive, leaving the venue to you'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     } else {
-      reply = 'I know it was totally out of the blue, but your reply made my week. Life has been a whirlwind lately, but hearing your voice grounds me.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Relieved, glad the door was not slammed shut';
+      // Turn-indexed progressive defaults
+      const progressiveBeats = [
+        {
+          text: 'I know it was totally out of the blue, but your reply made my week. Life has been a whirlwind lately, but hearing your voice grounds me.',
+          mood: 'warm' as const,
+          desc: 'Relieved, glad the door was not slammed shut'
+        },
+        {
+          text: 'I was sitting with my cursor over the send button for twenty minutes before actually hitting it. It feels so surreal and good to actually be talking again.',
+          mood: 'hesitant' as const,
+          desc: 'Admitting vulnerability and hesitation'
+        },
+        {
+          text: 'You have always had a very clear sense of yourself. That was one of the things I missed most when I went into my hermit phase.',
+          mood: 'warm' as const,
+          desc: 'Genuinely appreciative of your communication style'
+        },
+        {
+          text: 'Whatever pace you want to take this at—even if it is just checking in every few months—I am just happy the bridge is not completely burnt.',
+          mood: 'relieved' as const,
+          desc: 'Settling into a stable, comfortable equilibrium'
+        }
+      ];
+      const pick = selectUniqueReply(progressiveBeats);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     }
   } else if (scenario.id === 'forgotten-plan') {
     if (!canContinue) {
-      reply = 'You gave me the reality check I desperately needed. I am putting a hard block on my calendar for next week and turning off Slack notifications. Thank you for holding me accountable instead of just letting it rot.';
-      characterMood = 'relieved';
-      characterMoodDescription = 'Genuinely accountable, thankful for clear boundaries';
-    } else if (text.includes('third time') || text.includes('disposable') || text.includes('pattern')) {
-      reply = 'Seeing "third time" and "disposable" written out makes me feel sick to my stomach. You are 100% right. My lack of boundaries at work is leaking into my friendships, and it is completely unfair to treat your evening like a backup plan. I am so sorry.';
-      characterMood = 'hesitant';
-      characterMoodDescription = 'Stung by the mirror, realizing the real interpersonal cost of workaholism';
-    } else if (text.includes('disappointed') || text.includes('clear heads') || text.includes('space')) {
-      reply = 'I respect that completely. You have every right to be angry and take space. Go enjoy your evening, and whenever you are ready to talk next week, I will be here. I promise to listen.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Subdued and giving you space, respecting your emotional perimeter';
-    } else if (text.includes('solo') || text.includes('myself out') || text.includes('dressed')) {
-      reply = 'Haha damn, now I am double jealous! You go crush that ramen. But seriously, thank you for not letting me ruin your entire evening. I will make this up to you.';
-      characterMood = 'relieved';
-      characterMoodDescription = 'Impressed by your independence, eager to redeem reputation';
+      const pick = selectUniqueReply([
+        {
+          text: 'You gave me the reality check I desperately needed. I am putting a hard block on my calendar for next week and turning off Slack notifications. Thank you for holding me accountable instead of just letting it rot.',
+          mood: 'relieved',
+          desc: 'Genuinely accountable, thankful for clear boundaries'
+        },
+        {
+          text: 'I hear you loud and clear. Next round of ramen and drinks is 100% on my tab, and I will be sitting at the table ten minutes early. Thank you for being real with me.',
+          mood: 'warm',
+          desc: 'Motivated to restore trust with tangible follow-through'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('third time') || text.includes('disposable') || text.includes('pattern') || text.includes('tired')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Seeing "third time" and "disposable" written out makes me feel sick to my stomach. You are 100% right. My lack of boundaries at work is leaking into my friendships, and it is completely unfair to treat your evening like a backup plan. I am so sorry.',
+          mood: 'hesitant',
+          desc: 'Stung by the mirror, realizing the real interpersonal cost of workaholism'
+        },
+        {
+          text: 'You did not deserve to sit there waiting while I failed to manage my boss. I need to take a hard look at why I keep agreeing to evening fire drills at the expense of people I care about.',
+          mood: 'hesitant',
+          desc: 'Internalizing the criticism and acknowledging systemic flaking'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('disappointed') || text.includes('clear heads') || text.includes('space') || text.includes('angry')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'I respect that completely. You have every right to be angry and take space. Go enjoy your evening, and whenever you are ready to talk next week, I will be here. I promise to listen.',
+          mood: 'guarded',
+          desc: 'Subdued and giving you space, respecting your emotional perimeter'
+        },
+        {
+          text: 'Understood. I will not bombard you with apologies tonight. Take the space you need, and we will talk when the temperature is cooler.',
+          mood: 'guarded',
+          desc: 'Stepping back respectfully to avoid defensive badgering'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('solo') || text.includes('myself out') || text.includes('dressed') || text.includes('ramen')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Haha damn, now I am double jealous! You go crush that ramen. But seriously, thank you for not letting me ruin your entire evening. I will make this up to you.',
+          mood: 'relieved',
+          desc: 'Impressed by your independence, eager to redeem reputation'
+        },
+        {
+          text: 'Order the extra pork belly and dessert on my karmic tab! Seriously though, I admire that you did not just stay home fuming.',
+          mood: 'amused',
+          desc: 'Grateful for your unbothered poise'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     } else {
-      reply = 'I feel awful about this scramble. My VP dropped a fire drill at 5:15 PM and I did not know how to say no. I need to get better at managing this.';
-      characterMood = 'annoyed';
-      characterMoodDescription = 'Frustrated with work demands, striving to keep your friendship';
+      const progressiveBeats = [
+        {
+          text: 'I feel awful about this scramble. My VP dropped a fire drill at 5:15 PM and I did not know how to say no. I need to get better at managing this.',
+          mood: 'annoyed' as const,
+          desc: 'Frustrated with work demands, striving to keep your friendship'
+        },
+        {
+          text: 'I am literally staring at this spreadsheet right now realizing how hollow it feels compared to keeping my word to my closest friends.',
+          mood: 'hesitant' as const,
+          desc: 'Experiencing values conflict and regret'
+        },
+        {
+          text: 'Let us make a concrete plan right now for next Tuesday. If I cancel, you get to ban me from our group chat for a month. Deal?',
+          mood: 'warm' as const,
+          desc: 'Offering playful high-stakes accountability'
+        }
+      ];
+      const pick = selectUniqueReply(progressiveBeats);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     }
   } else if (scenario.id === 'boundary-joke') {
     if (!canContinue) {
-      reply = 'Hey, I really respect the way you handled that. A lot of people would have either blown up or secretly hated me for months. You told me straight to my face where the line was. Lesson learned, I promise.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Chastened, respecting your poise and boundary';
-    } else if (text.includes('livelihood') || text.includes('crossed a line') || text.includes('not cool')) {
-      reply = 'Whoa... you are right. When you put it like that, it sounds terrible. I was trying to get a cheap laugh from the table and did not stop to think how it felt from your shoes. That was stupid of me, I am genuinely sorry.';
-      characterMood = 'hesitant';
-      characterMoodDescription = 'Deflated, realizing the joke was cruel rather than clever';
-    } else if (text.includes('outside') || text.includes('privately') || text.includes('audience')) {
-      reply = 'Yeah, let us step out. [Marcus steps into the hallway, hands in pockets] Look, I got caught up trying to be the loud entertainer at the table. I didn\'t mean to undermine you.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Relieved to be away from the crowd, ready to listen without posturing';
-    } else if (text.includes('spreadsheet') || text.includes('junior desk') || text.includes('retaliation')) {
-      reply = 'Ouch! Alright, fair shot! I walked right into that one. Touché. But seriously, truce? I know when I have crossed the line.';
-      characterMood = 'amused';
-      characterMoodDescription = 'Taking the hit gracefully, recognizing they got out-sparred';
+      const pick = selectUniqueReply([
+        {
+          text: 'Hey, I really respect the way you handled that. A lot of people would have either blown up or secretly hated me for months. You told me straight to my face where the line was. Lesson learned, I promise.',
+          mood: 'warm',
+          desc: 'Chastened, respecting your poise and boundary'
+        },
+        {
+          text: 'Truce. And sincerely, thank you for calling it out directly. I will make sure the table knows it was out of line when we head back in.',
+          mood: 'relieved',
+          desc: 'Restoring camaraderie with active boundary respect'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('livelihood') || text.includes('crossed a line') || text.includes('not cool') || text.includes('respect')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Whoa... you are right. When you put it like that, it sounds terrible. I was trying to get a cheap laugh from the table and did not stop to think how it felt from your shoes. That was stupid of me, I am genuinely sorry.',
+          mood: 'hesitant',
+          desc: 'Deflated, realizing the joke was cruel rather than clever'
+        },
+        {
+          text: 'You are completely right. Making a spectacle of someone\'s hard work for easy banter is lazy and disrespectful. I own that.',
+          mood: 'hesitant',
+          desc: 'Accepting full responsibility without deflection'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('outside') || text.includes('privately') || text.includes('audience') || text.includes('hallway')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'Yeah, let us step out. [Marcus steps into the hallway, hands in pockets] Look, I got caught up trying to be the loud entertainer at the table. I did not mean to undermine you.',
+          mood: 'guarded',
+          desc: 'Relieved to be away from the crowd, ready to listen without posturing'
+        },
+        {
+          text: 'Good call pulling me aside. Doing this in front of the team would have turned into a dumb shouting match. What is on your mind?',
+          mood: 'neutral',
+          desc: 'Shifting to calm 1-on-1 conflict engagement'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     } else {
-      reply = 'Point taken. I will dial it down. Let us get another round and reset.';
-      characterMood = 'relieved';
-      characterMoodDescription = 'Accepting the correction, seeking to de-escalate';
+      const progressiveBeats = [
+        {
+          text: 'Point taken. I will dial it down. Let us get another round and reset.',
+          mood: 'relieved' as const,
+          desc: 'Accepting the correction, seeking to de-escalate'
+        },
+        {
+          text: 'I hear you. I will make sure the conversation shifts back to something neutral before we head back to the group.',
+          mood: 'neutral' as const,
+          desc: 'Cooperating to protect the social atmosphere'
+        },
+        {
+          text: 'I appreciate that you can call me out without turning it into a grudge. Let us move past it.',
+          mood: 'warm' as const,
+          desc: 'Re-establishing mutual respect'
+        }
+      ];
+      const pick = selectUniqueReply(progressiveBeats);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     }
-  } else if (scenario.id === 'credit-taken') {
+  } else if (scenario.id === 'credit-taken' || scenario.id === 'credit-snatcher') {
     if (!canContinue) {
-      reply = 'Understood. The joint recap email is going out with both our names prominently credited on the benchmarks. Moving forward, we will review attribution slides together. Thank you for addressing this directly with me.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Professional respect established; partnership saved from resentment';
-    } else if (text.includes('individual initiative') || text.includes('weekend') || text.includes('co-credited')) {
-      reply = 'I hear you, and you are right—those benchmarks were your work. On the call I was trying to keep the executive narrative concise and said "I" instead of "we". It was an oversight, but I can see how it looked like I was taking credit. Let us fix it in the recap notes.';
-      characterMood = 'hesitant';
-      characterMoodDescription = 'Conceding the factual point, protecting professional reputation';
-    } else if (text.includes('separate') || text.includes('warning') || text.includes('live on the call')) {
-      reply = 'I would strongly prefer we do not escalate this in front of leadership. I am telling you right now that it was an inadvertent slip of the tongue. I am happy to CC you and highlight your contributions.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Defensive, feeling the heat of potential public exposure';
+      const pick = selectUniqueReply([
+        {
+          text: 'Understood. The joint recap email is going out with both our names prominently credited on the benchmarks. Moving forward, we will review attribution slides together. Thank you for addressing this directly with me.',
+          mood: 'warm',
+          desc: 'Professional respect established; partnership saved from resentment'
+        },
+        {
+          text: 'I have updated the leadership summary document with your explicit contributions listed first. Let us make sure this standard holds for all future sprints.',
+          mood: 'relieved',
+          desc: 'Factual attribution restored, establishing healthy workplace norms'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('individual initiative') || text.includes('weekend') || text.includes('co-credited') || text.includes('my work')) {
+      const pick = selectUniqueReply([
+        {
+          text: 'I hear you, and you are right—those benchmarks were your work. On the call I was trying to keep the executive narrative concise and said "I" instead of "we". It was an oversight, but I can see how it looked like I was taking credit. Let us fix it in the recap notes.',
+          mood: 'hesitant',
+          desc: 'Conceding the factual point, protecting professional reputation'
+        },
+        {
+          text: 'Fair point. You put in the late hours on the data pipelines and it was wrong to present the outcome as a single-handed achievement. I will send a correction to the engineering thread.',
+          mood: 'hesitant',
+          desc: 'Acknowledging ownership and offering public correction'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     } else {
-      reply = 'I appreciate you bringing this to me 1-on-1 rather than letting it turn into silent resentment. Let us align on tomorrow\'s recap.';
-      characterMood = 'relieved';
-      characterMoodDescription = 'Glad the conflict was contained professionally';
+      const progressiveBeats = [
+        {
+          text: 'I appreciate you bringing this to me 1-on-1 rather than letting it turn into silent resentment. Let us align on tomorrow\'s recap.',
+          mood: 'relieved' as const,
+          desc: 'Glad the conflict was contained professionally'
+        },
+        {
+          text: 'I want us to operate as co-leads, not competitors. How would you like the credit structured in the VP presentation deck?',
+          mood: 'warm' as const,
+          desc: 'Collaborative alignment on attribution'
+        },
+        {
+          text: 'Agreed. Mutual transparency keeps the team functioning smoothly. Good call addressing it before the demo.',
+          mood: 'warm' as const,
+          desc: 'Solidifying professional trust'
+        }
+      ];
+      const pick = selectUniqueReply(progressiveBeats);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     }
   } else {
-    // Flirt Lab and others
+    // Charm & Banter / Flirt Lab / General Scenarios
     if (!canContinue) {
-      reply = 'It is so rare to meet someone who can banter like that without putting up a false front. Let us definitely finish this conversation over dinner sometime soon.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Enamored and impressed by your conversational authenticity';
-    } else if (text.includes('ten times more interesting') || text.includes('chemistry') || text.includes('espresso')) {
-      reply = '[Laughs warmly, tucking hair behind ear] Bold move! I respect someone who doesn\'t hide behind generic small talk. Sit down—the espresso is on me if your defense of chapter 12 actually holds up.';
-      characterMood = 'amused';
-      characterMoodDescription = 'Delighted by your direct flirtation and confidence';
-    } else if (text.includes('world') || text.includes('brushwork') || text.includes('passion')) {
-      reply = 'You actually care about what is under the surface, don\'t you? That is refreshing. Look at that corner right there—it represents the exact moment when order collapses into freedom.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Intellectually captivated, sharing genuine vulnerability';
+      const pick = selectUniqueReply([
+        {
+          text: 'It is so rare to meet someone who can banter like that without putting up a false front. Let us definitely finish this conversation over proper coffee or drinks sometime soon!',
+          mood: 'warm',
+          desc: 'Enamored and impressed by your conversational authenticity'
+        },
+        {
+          text: 'I have to say, you completely turned an ordinary afternoon into an unforgettable conversation. Let me give you my number so we do not lose touch.',
+          mood: 'warm',
+          desc: 'Spark ignited, closing with clear direct interest'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
+    } else if (text.includes('chemistry') || text.includes('spark') || text.includes('banter') || text.includes('interesting')) {
+      const pick = selectUniqueReply([
+        {
+          text: '[Laughs warmly, leaning in slightly] Bold move! I respect someone who does not hide behind generic small talk. Sit down—the espresso is on me if your defense of chapter 12 actually holds up.',
+          mood: 'amused',
+          desc: 'Delighted by your direct charm and confidence'
+        },
+        {
+          text: 'Careful now, you are setting high expectations for yourself! But I will admit, you have a very sharp sense of conversational timing.',
+          mood: 'amused',
+          desc: 'Engaging in playful sparring'
+        }
+      ]);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     } else {
-      reply = 'You have a very disarming way of speaking. Tell me more about what brought you here tonight.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Curious and engaged in reciprocal social rapport';
+      const progressiveBeats = [
+        {
+          text: 'You have a very disarming way of speaking. Tell me what brought you here today—give me the real answer, not the elevator pitch.',
+          mood: 'warm' as const,
+          desc: 'Curious and engaged in reciprocal social rapport'
+        },
+        {
+          text: 'I usually keep to myself with my headphones on, but something about your energy made me want to look up. That does not happen often.',
+          mood: 'warm' as const,
+          desc: 'Admitting genuine spontaneous intrigue'
+        },
+        {
+          text: 'Most people talk just to fill the quiet, but you actually listen between the lines. It is really refreshing.',
+          mood: 'warm' as const,
+          desc: 'Attuned and deepening mutual chemistry'
+        }
+      ];
+      const pick = selectUniqueReply(progressiveBeats);
+      reply = pick.text;
+      characterMood = pick.mood;
+      characterMoodDescription = pick.desc;
     }
   }
 

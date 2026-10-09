@@ -16,11 +16,12 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({
   scenarios,
   onSelectScenario,
-  onClearData,
+  onClearData: _onClearData,
   mockMode: _mockMode,
   onGoToRoastBot
 }) => {
   const [activeFilter, setActiveFilter] = useState<GameMode | 'all'>('all');
+  const [ageCheckScenario, setAgeCheckScenario] = useState<ScenarioDefinition | null>(null);
   const featuredScenario = scenarios[0];
 
   const filteredScenarios = activeFilter === 'all'
@@ -34,7 +35,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       case 'social_simulator':
         return '📱 SOCIAL SIMULATOR';
       case 'flirt_lab':
-        return '💘 FLIRT LAB';
+        return '💘 CHARM & BANTER RADAR (18+)';
       default:
         return '🎮 SCENARIO';
     }
@@ -53,46 +54,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
   };
 
+  const handleScenarioClick = (scenario: ScenarioDefinition) => {
+    soundFx.playTap();
+    if (scenario.mode === 'flirt_lab') {
+      const isVerified = localStorage.getItem('vibequest_age_verified_18');
+      if (!isVerified) {
+        setAgeCheckScenario(scenario);
+        return;
+      }
+    }
+    onSelectScenario(scenario);
+  };
+
   return (
     <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16 overflow-hidden">
       {/* 3D Floating Cartoon Background Scene */}
       <Cartoon3DScene className="opacity-40" />
-
-      {/* Top Banner: Status & Navigation */}
-      <header className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-4 border-black">
-        <div className="flex items-center gap-3">
-          <div className="w-4 h-4 rounded-full bg-comic-green border-2 border-black animate-bounce" />
-          <span className="font-display font-black text-2xl tracking-tight text-paper-50 uppercase">
-            VIBEQUEST <span className="bg-comic-yellow text-black font-mono text-xs px-2 py-0.5 rounded-lg border-2 border-black">3D CARTOON</span>
-          </span>
-          <span className="hidden md:inline font-mono text-xs text-paper-300 pl-3 border-l-2 border-paper-400">
-            Interactive Social Game & Comedy Report Card
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs font-mono font-bold">
-          {onGoToRoastBot && (
-            <button
-              onClick={() => {
-                soundFx.playTap();
-                onGoToRoastBot();
-              }}
-              type="button"
-              className="bg-comic-pink hover:bg-comic-orange text-white font-display font-black px-4 py-2 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform flex items-center gap-1.5"
-            >
-              <span>🔥 ROAST ARENA</span>
-            </button>
-          )}
-
-          <button
-            onClick={onClearData}
-            type="button"
-            className="text-paper-400 hover:text-white underline decoration-paper-400 underline-offset-4 transition-colors"
-          >
-            Clear data
-          </button>
-        </div>
-      </header>
 
       {/* Hero Section: 3D Mascot Stage + Bold Comic Hook */}
       <section className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -112,14 +89,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </h1>
 
           <p className="text-base sm:text-lg text-paper-200 font-sans font-medium leading-relaxed max-w-xl">
-            Step into dramatic everyday texts, awkward friend dilemmas, workplace credit heists, and rainy café sparks. Talk directly with expressive cartoon characters, choose your tactics, and receive your hilarious official **Vibe Report Card** with letter grades and teacher remarks!
+            Step into dramatic everyday texts, awkward friend dilemmas, workplace credit heists, and witty banter sparring. Talk directly with expressive cartoon characters, choose your tactics, and receive your hilarious official **Vibe Report Card** with letter grades and teacher remarks!
           </p>
 
           {/* Quick Action Badges */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               type="button"
-              onClick={() => onSelectScenario(featuredScenario)}
+              onClick={() => handleScenarioClick(featuredScenario)}
               className="bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-base px-6 py-3.5 rounded-2xl border-4 border-black shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 transition-transform flex items-center gap-2"
             >
               <span>🎮 JUMP INTO SCENARIO →</span>
@@ -153,7 +130,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
 
-        {/* Right 3D Interactive Mascot Stage */}
+        {/* Right 3D Interactive Mascot Stage - Unified Roast Battle Card */}
         <div className="lg:col-span-5 flex flex-col items-center justify-center">
           <div className="relative bg-[#FFFDF0] p-6 sm:p-8 rounded-3xl border-4 border-black shadow-cartoon-xl text-center w-full max-w-sm">
             {/* Comic Floating Tag */}
@@ -163,55 +140,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Three.js 3D Mascot */}
             <div className="py-2 flex justify-center">
-              <Cartoon3DMascot mood="happy" size="lg" />
+              <Cartoon3DMascot mood="roasting" size="lg" />
             </div>
 
-            <div className="space-y-1 mt-2">
-              <div className="font-display font-black text-xl text-black uppercase">
-                BUSTER 3000
+            <div className="space-y-2 mt-2">
+              <div className="inline-block bg-black text-comic-yellow font-mono font-extrabold text-[11px] px-3 py-0.5 rounded-full border-2 border-black shadow-cartoon-sm uppercase">
+                NEW GAME MODE
               </div>
-              <p className="font-sans font-semibold text-xs text-ink-700">
-                Interactive 3D mascot. Mouse tracks eyes. Ready to roast or cheer you on!
+              <h2 className="font-display font-black text-xl text-black uppercase tracking-tight">
+                🔥 Have an Unhinged Roast Battle!
+              </h2>
+              <p className="font-sans font-medium text-xs text-ink-800 leading-relaxed">
+                Think you have sharp comebacks? Trade roasts with Buster in real time, see who runs out of HP first, or drop awkward texts for a brutal vibe check!
               </p>
             </div>
 
             {onGoToRoastBot && (
               <button
                 type="button"
-                onClick={onGoToRoastBot}
-                className="w-full mt-4 bg-comic-yellow hover:bg-comic-orange text-black font-display font-black text-xs py-2.5 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+                onClick={() => {
+                  soundFx.playTap();
+                  onGoToRoastBot();
+                }}
+                className="w-full mt-4 bg-comic-yellow hover:bg-comic-pink hover:text-white text-black font-display font-black text-xs py-3 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform"
               >
-                ENTER ROAST BATTLE ARENA ⚔️
+                START ROAST BATTLE → ⚔️
               </button>
             )}
           </div>
         </div>
       </section>
-
-      {/* Standalone Feature: Buster's Roast Battle Banner */}
-      {onGoToRoastBot && (
-        <section className="relative z-10 bg-comic-pink text-white rounded-3xl border-4 border-black p-6 sm:p-8 shadow-cartoon-xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-block bg-black text-comic-yellow font-mono font-extrabold text-xs px-3 py-1 rounded-full border-2 border-black shadow-cartoon-sm">
-              NEW GAME MODE: BUSTER ARENA
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-display font-black tracking-tight text-white uppercase">
-              🔥 Have an Unhinged Roast Battle!
-            </h2>
-            <p className="font-sans font-semibold text-xs sm:text-sm text-white/95 max-w-xl leading-relaxed">
-              Think you have sharp comebacks? Trade roasts with Buster in real time, see who runs out of HP first, or drop awkward texts for a brutal vibe check!
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onGoToRoastBot}
-            className="bg-comic-yellow hover:bg-comic-green text-black font-display font-black text-sm px-6 py-3.5 rounded-2xl border-3 border-black shadow-cartoon hover:-translate-y-1 active:translate-y-0 transition-transform whitespace-nowrap"
-          >
-            START ROAST BATTLE →
-          </button>
-        </section>
-      )}
 
       {/* Scenario Filter & Full Game Catalogue */}
       <section className="relative z-10 space-y-6">
@@ -252,7 +210,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {filteredScenarios.map((s) => (
             <div
               key={s.id}
-              onClick={() => onSelectScenario(s)}
+              onClick={() => handleScenarioClick(s)}
               className="group bg-[#FFFDF0] text-black rounded-3xl border-4 border-black p-5 shadow-cartoon hover:shadow-cartoon-lg hover:-translate-y-1 transition-all duration-150 cursor-pointer flex flex-col justify-between"
             >
               <div className="space-y-3">
@@ -300,6 +258,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           ))}
         </div>
       </section>
+
+      {/* 18+ Age Validation Modal for Charm & Banter Radar */}
+      {ageCheckScenario && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF0] text-black border-4 border-black rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-cartoon-xl space-y-4 text-center animate-fade-in relative">
+            <div className="w-16 h-16 bg-comic-pink text-white rounded-2xl border-3 border-black mx-auto flex items-center justify-center text-3xl shadow-cartoon">
+              🔞
+            </div>
+            <div className="space-y-1">
+              <span className="bg-comic-yellow text-black font-mono font-black text-xs px-3 py-1 rounded-full border-2 border-black shadow-cartoon-sm uppercase">
+                COMEDY AGE CHECK • 18+
+              </span>
+              <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase pt-1">
+                CHARM & BANTER RADAR
+              </h3>
+            </div>
+            <p className="font-sans font-medium text-xs sm:text-sm text-ink-800 leading-relaxed">
+              This scenario judges your conversational chemistry, witty banter, and room-reading radar without any creepy energy! Are you 18 or older?
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  soundFx.playTap();
+                  localStorage.setItem('vibequest_age_verified_18', 'true');
+                  const target = ageCheckScenario;
+                  setAgeCheckScenario(null);
+                  onSelectScenario(target);
+                }}
+                className="flex-1 bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-xs py-3 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+              >
+                ✅ YES, I'M 18+ & READY
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  soundFx.playTap();
+                  setAgeCheckScenario(null);
+                }}
+                className="bg-white hover:bg-gray-100 text-black font-display font-bold text-xs py-3 px-4 rounded-xl border-3 border-black shadow-cartoon"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

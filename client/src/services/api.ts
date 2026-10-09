@@ -171,5 +171,40 @@ export class ApiService {
       return simulateReport(payload);
     }
   }
+
+  /**
+   * Submit message to Buster Roast Bot
+   */
+  public static async submitRoast(payload: {
+    message: string;
+    history?: Array<{ sender: 'user' | 'bot'; text: string }>;
+    mode: 'roast' | 'chat' | 'vibecheck';
+  }): Promise<{
+    text: string;
+    damage?: number;
+    roastRating?: string;
+    mood: 'happy' | 'roasting' | 'shocked' | 'chill';
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/roast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && json.data.text) return json.data;
+      }
+    } catch (_) {
+      // Backend offline or timeout fallback
+    }
+    return {
+      text: `"${payload.message.slice(0, 30)}..."? Did you bring that comeback from a 2012 Disney sitcom? Even my GPU didn't flinch!`,
+      damage: 45,
+      roastRating: 'DAMAGE: 65 HP • SOLID DIG',
+      mood: 'roasting'
+    };
+  }
 }
 

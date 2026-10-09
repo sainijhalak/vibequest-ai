@@ -36,7 +36,7 @@ export const EpisodeTitleCard: React.FC<EpisodeTitleCardProps> = ({ scenario, on
       case 'social_simulator':
         return { label: '📱 SOCIAL SIMULATOR', bg: 'bg-comic-yellow text-black' };
       case 'flirt_lab':
-        return { label: '💘 FLIRT LAB', bg: 'bg-comic-cyan text-black' };
+        return { label: '💘 CHARM & BANTER RADAR (18+)', bg: 'bg-comic-cyan text-black' };
       default:
         return { label: '🎮 SCENARIO DISPATCH', bg: 'bg-comic-green text-black' };
     }
