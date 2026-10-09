@@ -35,7 +35,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       case 'social_simulator':
         return '📱 SOCIAL SIMULATOR';
       case 'flirt_lab':
-        return '💘 CHARM & BANTER RADAR (18+)';
+        return '💘 CHARM & BANTER RADAR';
       default:
         return '🎮 SCENARIO';
     }
@@ -57,7 +57,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const handleScenarioClick = (scenario: ScenarioDefinition) => {
     soundFx.playTap();
     if (scenario.mode === 'flirt_lab') {
-      const isVerified = localStorage.getItem('vibequest_age_verified_18');
+      const isVerified = localStorage.getItem('vibequest_banter_permission_granted') || localStorage.getItem('vibequest_age_verified_18');
       if (!isVerified) {
         setAgeCheckScenario(scenario);
         return;
@@ -259,37 +259,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 18+ Age Validation Modal for Charm & Banter Radar */}
+      {/* Permission Modal for Charm & Banter Radar */}
       {ageCheckScenario && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#FFFDF0] text-black border-4 border-black rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-cartoon-xl space-y-4 text-center animate-fade-in relative">
-            <div className="w-16 h-16 bg-comic-pink text-white rounded-2xl border-3 border-black mx-auto flex items-center justify-center text-3xl shadow-cartoon">
-              🔞
+            <div className="w-16 h-16 bg-comic-cyan text-black rounded-2xl border-3 border-black mx-auto flex items-center justify-center text-3xl shadow-cartoon">
+              💘
             </div>
             <div className="space-y-1">
               <span className="bg-comic-yellow text-black font-mono font-black text-xs px-3 py-1 rounded-full border-2 border-black shadow-cartoon-sm uppercase">
-                COMEDY AGE CHECK • 18+
+                PERMISSION REQUIRED • BANTER CHECK
               </span>
               <h3 className="font-display font-black text-xl sm:text-2xl text-black uppercase pt-1">
                 CHARM & BANTER RADAR
               </h3>
             </div>
             <p className="font-sans font-medium text-xs sm:text-sm text-ink-800 leading-relaxed">
-              This scenario judges your conversational chemistry, witty banter, and room-reading radar without any creepy energy! Are you 18 or older?
+              This scenario judges your conversational chemistry, witty banter, and room-reading radar without any awkward energy! Do you grant permission to enter?
             </p>
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={() => {
                   soundFx.playTap();
-                  localStorage.setItem('vibequest_age_verified_18', 'true');
+                  localStorage.setItem('vibequest_banter_permission_granted', 'true');
                   const target = ageCheckScenario;
                   setAgeCheckScenario(null);
                   onSelectScenario(target);
                 }}
-                className="flex-1 bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-xs py-3 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+                className="flex-1 bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-xs py-3 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform cursor-pointer"
               >
-                ✅ YES, I'M 18+ & READY
+                ✅ GRANT PERMISSION & ENTER
               </button>
               <button
                 type="button"
@@ -297,7 +297,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   soundFx.playTap();
                   setAgeCheckScenario(null);
                 }}
-                className="bg-white hover:bg-gray-100 text-black font-display font-bold text-xs py-3 px-4 rounded-xl border-3 border-black shadow-cartoon"
+                className="bg-white hover:bg-gray-100 text-black font-display font-bold text-xs py-3 px-4 rounded-xl border-3 border-black shadow-cartoon cursor-pointer"
               >
                 Cancel
               </button>
