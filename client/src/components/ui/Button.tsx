@@ -17,20 +17,20 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-display font-medium tracking-tight transition-all select-none disabled:opacity-40 disabled:pointer-events-none active:translate-y-[1px]';
+  const baseStyles = 'inline-flex items-center justify-center font-display font-black tracking-tight transition-all select-none disabled:opacity-40 disabled:pointer-events-none hover:-translate-y-0.5 active:translate-y-0 cursor-pointer';
 
   const variantStyles = {
-    primary: 'bg-coral hover:bg-coral-hover text-ink-950 border border-coral-dark shadow-sm',
-    secondary: 'bg-ink-850 hover:bg-ink-800 text-paper-50 border border-ink-700 hover:border-ink-600',
-    outline: 'bg-transparent hover:bg-ink-900 text-paper-200 hover:text-paper-50 border border-ink-700 hover:border-ink-600',
-    ghost: 'bg-transparent hover:bg-ink-850 text-paper-300 hover:text-paper-50',
-    'coral-subtle': 'bg-coral-tint hover:bg-coral-tint/80 text-coral border border-coral/30 hover:border-coral/50',
+    primary: 'bg-comic-green hover:bg-comic-yellow text-black border-3 border-black shadow-cartoon',
+    secondary: 'bg-comic-yellow hover:bg-comic-orange text-black border-3 border-black shadow-cartoon',
+    outline: 'bg-white hover:bg-comic-yellow text-black border-3 border-black shadow-cartoon',
+    ghost: 'bg-transparent hover:bg-comic-yellow/30 text-black border-2 border-transparent',
+    'coral-subtle': 'bg-comic-pink hover:bg-comic-orange text-white border-3 border-black shadow-cartoon',
   };
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 rounded-lg gap-1.5',
+    sm: 'text-xs px-3.5 py-1.5 rounded-xl gap-1.5',
     md: 'text-sm px-4 py-2.5 rounded-xl gap-2',
-    lg: 'text-base px-6 py-3.5 rounded-xl gap-2.5',
+    lg: 'text-base px-6 py-3.5 rounded-2xl gap-2.5',
   };
 
   return (

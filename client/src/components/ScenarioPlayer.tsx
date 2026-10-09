@@ -14,7 +14,6 @@ import { CharacterAvatar } from './ui/CharacterAvatar.js';
 import { ChatBubble, TypingIndicator } from './ui/ChatBubble.js';
 import { ChoiceCard } from './ui/ChoiceCard.js';
 import { ProgressBar } from './ui/ProgressBar.js';
-import { Button } from './ui/Button.js';
 import { EpisodeTitleCard } from './ui/EpisodeTitleCard.js';
 import { getTheme } from '../themes/scenarioThemes.js';
 import { SceneIllustration } from './ui/SceneIllustration.js';
@@ -251,33 +250,33 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   const getMoodBadgeClasses = (mood: CharacterMood) => {
     switch (mood) {
       case 'amused':
-        return 'bg-amber-tint border-amber/40 text-amber';
+        return 'bg-comic-yellow text-black';
       case 'warm':
-        return 'bg-mint-tint border-mint/40 text-mint';
+        return 'bg-comic-green text-black';
       case 'annoyed':
-        return 'bg-coral-tint border-coral/40 text-coral';
+        return 'bg-comic-pink text-white';
       case 'hesitant':
-        return 'bg-amber-tint/50 border-amber-400/40 text-amber-300';
+        return 'bg-comic-orange text-white';
       case 'guarded':
-        return 'bg-ink-800 border-ink-600 text-paper-300';
+        return 'bg-gray-300 text-black';
       case 'relieved':
-        return 'bg-teal-950/40 border-teal-400/40 text-teal-300';
+        return 'bg-comic-cyan text-black';
       case 'neutral':
       default:
-        return 'bg-ink-800 border-ink-700 text-paper-400';
+        return 'bg-white text-black';
     }
   };
 
-  // If in episode title card stage, show cinematic briefing screen
+  // If in episode title card stage, show comic briefing document
   if (showEpisodeIntro) {
     return (
       <div data-theme={theme.id} className="min-h-screen py-6 sm:py-8 transition-colors duration-300">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-ink-800">
+          <div className="flex items-center justify-between pb-3 border-b-4 border-black">
             <button
               onClick={onExit}
               type="button"
-              className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors"
+              className="bg-white hover:bg-comic-pink hover:text-white text-black font-mono font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5"
             >
               ← BACK TO SCENARIOS
             </button>
@@ -285,12 +284,12 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             <button
               type="button"
               onClick={handleToggleSound}
-              className={`font-mono text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 ${
+              className={`font-mono font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 flex items-center gap-2 ${
                 soundEnabled
-                  ? 'bg-ink-850 border-coral/60 text-coral'
-                  : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+                  ? 'bg-comic-green text-black'
+                  : 'bg-white text-black hover:bg-comic-green'
               }`}
-              title="Toggle subtle audio effects (off by default)"
+              title="Toggle audio effects"
             >
               <span>{soundEnabled ? '🔊' : '🔇'}</span>
               <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
@@ -310,12 +309,12 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
     <div data-theme={theme.id} className="min-h-screen py-6 sm:py-8 transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
         {/* Top Header & Turn Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink-700/80">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-4 border-black">
+          <div className="flex items-center gap-3">
             <button
               onClick={onExit}
               type="button"
-              className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors self-start"
+              className="bg-white hover:bg-comic-pink hover:text-white text-black font-mono font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5"
             >
               ← EXIT SCENARIO
             </button>
@@ -323,23 +322,23 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             <button
               type="button"
               onClick={() => setShowEpisodeIntro(true)}
-              className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
+              className="bg-comic-yellow hover:bg-comic-orange text-black font-mono font-black text-xs px-3.5 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5"
               title="Review episode briefing"
             >
-              [BRIEFING]
+              📋 BRIEFING
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleToggleSound}
-              className={`font-mono text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
+              className={`font-mono font-black text-xs px-3 py-2 rounded-xl border-3 border-black shadow-cartoon transition-all hover:-translate-y-0.5 flex items-center gap-1.5 ${
                 soundEnabled
-                  ? 'bg-ink-850 border-coral/60 text-coral'
-                  : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+                  ? 'bg-comic-green text-black'
+                  : 'bg-white text-black hover:bg-comic-green'
               }`}
-              title="Toggle subtle audio effects (off by default)"
+              title="Toggle audio effects"
             >
               <span>{soundEnabled ? '🔊' : '🔇'}</span>
               <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
@@ -348,20 +347,22 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             <ProgressBar
               currentTurn={userTurnsCount}
               maxTurns={scenario.maxTurns}
-              className="sm:w-56"
+              className="sm:w-64"
             />
           </div>
         </div>
 
         {/* Bespoke Scene Art Header Banner & Character Dossier */}
-        <div className="bg-ink-900 border border-ink-700/80 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-[#FFFDF0] text-black border-4 border-black rounded-3xl overflow-hidden shadow-cartoon-xl">
           {/* Layered SVG Scene Illustration */}
-          <SceneIllustration scenarioId={scenario.id} themeId={theme.id} />
+          <div className="border-b-4 border-black relative">
+            <SceneIllustration scenarioId={scenario.id} themeId={theme.id} />
+          </div>
 
           {/* Character Dossier Banner & Mood Meter */}
-          <div className="p-4 sm:p-5 flex flex-col gap-3">
+          <div className="p-4 sm:p-6 flex flex-col gap-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-4">
                 <CharacterAvatar
                   seed={scenario.character.avatarSeed}
                   name={scenario.character.name}
@@ -372,51 +373,44 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="font-display font-bold text-base sm:text-lg text-paper-50">
+                    <h2 className="font-display font-black text-lg sm:text-xl text-black">
                       {scenario.character.name}
                     </h2>
-                    <span className="font-mono text-xs text-paper-400">
+                    <span className="bg-comic-yellow text-black font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border-2 border-black shadow-cartoon-sm">
                       ({scenario.character.role})
                     </span>
                   </div>
-                  <p className="text-xs text-paper-300 line-clamp-1 mt-0.5 font-sans">
+                  <p className="text-xs sm:text-sm text-ink-800 line-clamp-1 mt-0.5 font-sans font-medium">
                     {scenario.character.bio}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <div
-                  className="px-2.5 py-1 rounded border text-[11px] font-mono tracking-wide"
-                  style={{
-                    borderColor: theme.tokens.border,
-                    color: theme.tokens.accent,
-                    backgroundColor: theme.tokens.surface
-                  }}
-                >
+                <div className="px-3.5 py-1.5 rounded-full border-2 border-black text-xs font-mono font-black tracking-wide bg-comic-cyan text-black shadow-cartoon-sm">
                   {theme.environment}
                 </div>
               </div>
             </div>
 
             {/* Live Story Mood Meter */}
-            <div className="bg-ink-950/80 border border-ink-800 rounded-xl px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <div className="bg-white border-3 border-black rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-cartoon">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-[11px] text-paper-400 uppercase tracking-wider">
+                <span className="font-mono text-xs text-black font-black uppercase tracking-wider">
                   {scenario.character.name.split(' ')[0]}'S MOOD:
                 </span>
-                <span className={`font-mono text-[11px] px-2 py-0.5 rounded border uppercase font-medium transition-all duration-300 ${getMoodBadgeClasses(characterMood)}`}>
+                <span className={`font-mono text-xs px-2.5 py-0.5 rounded-lg border-2 border-black uppercase font-black shadow-cartoon-sm transition-all duration-300 ${getMoodBadgeClasses(characterMood)}`}>
                   ● {characterMood}
                 </span>
-                <span className="text-paper-300 text-xs italic font-sans truncate max-w-xs sm:max-w-md">
+                <span className="text-black text-xs sm:text-sm italic font-sans font-bold truncate max-w-xs sm:max-w-md">
                   "{characterMoodDesc}"
                 </span>
               </div>
 
               {scenario.character.quirks && (
-                <div className="font-mono text-[10px] text-paper-400 flex items-center gap-1.5 sm:self-auto self-start border-t sm:border-t-0 border-ink-800 pt-1 sm:pt-0">
-                  <span className="uppercase" style={{ color: theme.tokens.accent }}>QUIRK:</span>
-                  <span className="text-paper-300">{scenario.character.quirks.emojiHabit}</span>
+                <div className="font-mono text-xs text-black flex items-center gap-2 sm:self-auto self-start border-t sm:border-t-0 border-black pt-2 sm:pt-0">
+                  <span className="bg-black text-white px-2 py-0.5 rounded text-[11px] font-bold">QUIRK</span>
+                  <span className="font-bold text-black">{scenario.character.quirks.emojiHabit}</span>
                 </div>
               )}
             </div>
@@ -424,38 +418,49 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         </div>
 
         {/* Real Messenger Dialogue Viewport */}
-        <div className="bg-ink-950/90 border border-ink-700/80 rounded-2xl p-4 sm:p-6 min-h-[380px] max-h-[520px] overflow-y-auto space-y-3.5 shadow-inner">
-          {history.map((turn, idx) => (
-            <ChatBubble
-              key={idx}
-              speaker={turn.speaker}
-              text={turn.text}
-              senderName={scenario.character.name}
-              timestamp={turn.timestamp}
-              isCustom={turn.isCustom}
-              bubbleClassName={turn.speaker === 'user' ? theme.classes.userBubble : theme.classes.characterBubble}
-            />
-          ))}
+        <div className="bg-[#FFFDF0] text-black border-4 border-black rounded-3xl p-4 sm:p-6 min-h-[400px] max-h-[540px] overflow-y-auto space-y-4 shadow-cartoon-xl relative">
+          {/* Subtle comic dot grid */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-5"
+            style={{
+              backgroundImage: 'radial-gradient(#000000 1.5px, transparent 1.5px)',
+              backgroundSize: '16px 16px'
+            }}
+          />
 
-          {isLoading && (
-            <TypingIndicator
-              characterName={scenario.character.name}
-              typingSpeedMs={scenario.character.quirks?.typingSpeedMs}
-              bubbleClassName={theme.classes.characterBubble}
-            />
-          )}
+          <div className="relative z-10 space-y-3.5">
+            {history.map((turn, idx) => (
+              <ChatBubble
+                key={idx}
+                speaker={turn.speaker}
+                text={turn.text}
+                senderName={scenario.character.name}
+                timestamp={turn.timestamp}
+                isCustom={turn.isCustom}
+                bubbleClassName={turn.speaker === 'user' ? theme.classes.userBubble : theme.classes.characterBubble}
+              />
+            ))}
 
-          <div ref={messagesEndRef} />
+            {isLoading && (
+              <TypingIndicator
+                characterName={scenario.character.name}
+                typingSpeedMs={scenario.character.quirks?.typingSpeedMs}
+                bubbleClassName={theme.classes.characterBubble}
+              />
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Error Notice */}
         {error && (
-          <div className="p-3.5 rounded-xl bg-coral-tint border border-coral/50 text-coral text-xs font-mono flex items-center justify-between">
-            <span>[ERROR]: {error}</span>
+          <div className="p-4 rounded-2xl bg-comic-pink text-white border-3 border-black text-xs font-mono font-bold shadow-cartoon flex items-center justify-between">
+            <span>⚠️ [ERROR]: {error}</span>
             <button
               onClick={() => setError(null)}
               type="button"
-              className="underline ml-3"
+              className="underline ml-3 font-black"
             >
               Dismiss
             </button>
@@ -464,52 +469,51 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
 
         {/* Interactive Controls / Action Station */}
         {isFinished ? (
-          <div className="bg-ink-900 border border-coral/50 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl">
-            <div className="font-mono text-xs text-coral uppercase tracking-wider">
-              SCENARIO CONCLUDED
+          <div className="bg-[#FFFDF0] text-black border-4 border-black rounded-3xl p-6 sm:p-10 text-center space-y-5 shadow-cartoon-xl relative overflow-hidden">
+            <div className="inline-block bg-comic-pink text-white font-mono font-black text-xs px-3.5 py-1.5 rounded-full border-2 border-black shadow-cartoon-sm uppercase">
+              🎓 SCENARIO CONCLUDED
             </div>
-            <h3 className="text-xl sm:text-2xl font-display font-bold text-paper-50 tracking-tight">
-              Ready to review your communication receipts?
+            <h3 className="text-2xl sm:text-4xl font-display font-black text-black tracking-tight uppercase">
+              Ready To Reveal Your Official Vibe Report Card?
             </h3>
-            <p className="text-xs sm:text-sm text-paper-300 max-w-lg mx-auto font-sans leading-relaxed">
-              We will calculate your deterministic scores across 4 behavioral dimensions and synthesize an evidence-backed debrief citing your exact choices.
+            <p className="text-xs sm:text-sm text-ink-800 max-w-lg mx-auto font-sans font-medium leading-relaxed">
+              We evaluated your deterministic communication metrics across all 4 core dimensions and generated your hilarious letter grades, GPA, and receipts!
             </p>
 
-            <div className="pt-2 flex flex-col items-center gap-3">
-              <Button
-                variant="primary"
-                size="lg"
-                isLoading={isEvaluating}
+            <div className="pt-3 flex flex-col items-center gap-3">
+              <button
+                type="button"
                 onClick={handleGenerateReport}
-                className="mx-auto"
+                disabled={isEvaluating}
+                className="w-full sm:w-auto bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-base sm:text-lg px-8 py-4 rounded-2xl border-4 border-black shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 transition-transform cursor-pointer flex items-center justify-center gap-2 mx-auto disabled:opacity-50"
               >
-                Reveal Your Reflection & Receipts →
-              </Button>
+                <span>{isEvaluating ? '⏳ GENERATING REPORT CARD...' : '📜 REVEAL REPORT CARD & RECEIPTS →'}</span>
+              </button>
 
               {isEvaluating && evaluatingSeconds >= 3 && (
-                <div className="font-mono text-xs text-amber animate-pulse">
-                  [SERVER STATUS]: Waking up server from idle sleep... ({evaluatingSeconds}s elapsed)
+                <div className="font-mono text-xs font-bold text-black bg-comic-yellow border-2 border-black px-3 py-1.5 rounded-xl shadow-cartoon-sm animate-pulse">
+                  ⚡ Synthesizing AI reflection & receipts... ({evaluatingSeconds}s elapsed)
                 </div>
               )}
 
               {(error || evaluatingSeconds >= 5) && (
                 <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={handleGenerateReport}
                     disabled={isEvaluating}
+                    className="bg-white hover:bg-comic-yellow text-black font-mono font-black text-xs px-4 py-2.5 rounded-xl border-3 border-black shadow-cartoon"
                   >
-                    ↺ Retry Reflection Call
-                  </Button>
+                    ↺ Retry Reflection
+                  </button>
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={handleInstantDeterministicScores}
+                    className="bg-comic-cyan hover:bg-comic-yellow text-black font-mono font-black text-xs px-4 py-2.5 rounded-xl border-3 border-black shadow-cartoon"
                   >
-                    ⚡ View Instant Scores & Receipts Now
-                  </Button>
+                    ⚡ View Instant Report Card Now
+                  </button>
                 </div>
               )}
             </div>
@@ -540,18 +544,20 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             )}
 
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-paper-300 font-medium">CHOOSE YOUR TACTIC:</span>
+              <span className="bg-black text-white font-black px-2.5 py-1 rounded-md border-2 border-black shadow-cartoon-sm">
+                CHOOSE YOUR TACTIC:
+              </span>
               <button
                 type="button"
                 onClick={() => setIsCustomMode(!isCustomMode)}
-                className="text-coral hover:text-coral-hover underline underline-offset-4 transition-colors"
+                className="bg-white hover:bg-comic-pink hover:text-white text-black font-black px-2.5 py-1 rounded-md border-2 border-black shadow-cartoon-sm transition-all"
               >
                 {isCustomMode ? '← View Preset Choices' : 'Write Custom Response →'}
               </button>
             </div>
 
             {!isCustomMode ? (
-              /* 4-5 Tactile Choice Cards Grid */
+              /* Choice Cards Grid */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {currentChoices.map((choice, idx) => (
                   <ChoiceCard
@@ -566,8 +572,8 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
               </div>
             ) : (
               /* Custom Text Input Area */
-              <form onSubmit={handleCustomSubmit} className="bg-ink-900 border border-ink-700 rounded-2xl p-4 space-y-3">
-                <label htmlFor="custom-reply" className="block text-xs font-mono text-paper-300">
+              <form onSubmit={handleCustomSubmit} className="bg-[#FFFDF0] border-4 border-black rounded-2xl p-4 sm:p-5 space-y-3 shadow-cartoon">
+                <label htmlFor="custom-reply" className="block text-xs font-mono font-black text-black uppercase">
                   WRITE WHAT YOU WOULD ACTUALLY SAY:
                 </label>
                 <textarea
@@ -577,20 +583,19 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
                   placeholder={`Type your reply to ${scenario.character.name}...`}
                   rows={3}
                   maxLength={800}
-                  className="w-full bg-ink-950 border border-ink-700 rounded-xl p-3 text-xs sm:text-sm text-paper-50 placeholder:text-paper-400 focus:outline-none focus:border-coral transition-colors resize-none font-sans"
+                  className="w-full bg-white border-3 border-black rounded-xl p-3 text-xs sm:text-sm text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-comic-pink transition-colors resize-none font-sans font-medium"
                 />
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-paper-400">
+                  <span className="text-xs font-mono font-bold text-gray-600">
                     {customText.length}/800 characters
                   </span>
-                  <Button
+                  <button
                     type="submit"
-                    variant="primary"
-                    size="sm"
                     disabled={!customText.trim() || isLoading}
+                    className="bg-comic-pink hover:bg-comic-orange text-white font-display font-black text-xs px-5 py-2.5 rounded-xl border-3 border-black shadow-cartoon hover:-translate-y-0.5 active:translate-y-0 transition-transform disabled:opacity-50"
                   >
-                    Send Message
-                  </Button>
+                    SEND MESSAGE →
+                  </button>
                 </div>
               </form>
             )}
@@ -600,7 +605,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
               <button
                 type="button"
                 onClick={() => setIsFinished(true)}
-                className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
+                className="font-mono text-xs font-bold text-paper-300 hover:text-white underline transition-colors"
               >
                 End scenario here & review what we observed so far
               </button>

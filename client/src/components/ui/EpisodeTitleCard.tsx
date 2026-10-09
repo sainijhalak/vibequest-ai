@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ScenarioDefinition } from '@vibequest/shared';
 import { CharacterAvatar } from './CharacterAvatar.js';
-import { Button } from './Button.js';
 import { soundFx } from '../../services/soundFx.js';
 
 interface EpisodeTitleCardProps {
@@ -30,75 +29,89 @@ export const EpisodeTitleCard: React.FC<EpisodeTitleCardProps> = ({ scenario, on
     onStart();
   };
 
-  const getCategoryLabel = (mode: string) => {
+  const getCategoryBadge = (mode: string) => {
     switch (mode) {
       case 'conflict_arena':
-        return 'CONFLICT ARENA';
+        return { label: '🥊 CONFLICT ARENA', bg: 'bg-comic-pink text-white' };
       case 'social_simulator':
-        return 'SOCIAL SIMULATOR';
+        return { label: '📱 SOCIAL SIMULATOR', bg: 'bg-comic-yellow text-black' };
       case 'flirt_lab':
-        return 'FLIRT LAB';
+        return { label: '💘 FLIRT LAB', bg: 'bg-comic-cyan text-black' };
       default:
-        return 'SCENARIO DISPATCH';
+        return { label: '🎮 SCENARIO DISPATCH', bg: 'bg-comic-green text-black' };
     }
   };
 
+  const category = getCategoryBadge(scenario.mode);
+
   return (
-    <div className="min-h-[580px] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-      <div className="w-full max-w-2xl bg-ink-900 border border-ink-700/80 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-        {/* Subtle decorative top accent line */}
+    <div className="min-h-[580px] flex items-center justify-center p-2 sm:p-4 animate-fade-in">
+      <div className="w-full max-w-3xl bg-[#FFFDF0] text-black border-4 border-black rounded-3xl p-6 sm:p-10 shadow-cartoon-xl relative overflow-hidden">
+        {/* Background Comic Halftone / Dot Pattern */}
         <div
-          className="absolute top-0 left-0 right-0 h-1"
-          style={{ backgroundColor: scenario.character.accentColor || '#FF5C35' }}
+          className="absolute inset-0 pointer-events-none opacity-5"
+          style={{
+            backgroundImage: 'radial-gradient(#000000 1.5px, transparent 1.5px)',
+            backgroundSize: '16px 16px'
+          }}
         />
 
-        <div className="flex flex-col gap-6">
-          {/* Header metadata */}
-          <div className="flex items-center justify-between text-xs font-mono border-b border-ink-800 pb-4">
-            <span className="text-coral font-bold tracking-widest uppercase">
-              // {getCategoryLabel(scenario.mode)}
+        <div className="relative z-10 flex flex-col gap-6 sm:gap-7">
+          {/* Header metadata pill strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-4 border-black">
+            <span className={`${category.bg} font-mono font-black text-xs px-3.5 py-1.5 rounded-full border-2 border-black shadow-cartoon-sm uppercase tracking-wide`}>
+              {category.label}
             </span>
-            <span className="text-paper-400">
-              {scenario.maxTurns} TURNS • TARGET: {scenario.character.role.toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="bg-white text-black font-mono font-black text-xs px-3 py-1.5 rounded-full border-2 border-black shadow-cartoon-sm">
+                🎯 {scenario.maxTurns} TURNS
+              </span>
+              <span className="bg-white text-black font-mono font-bold text-xs px-3 py-1.5 rounded-full border-2 border-black shadow-cartoon-sm hidden sm:inline-block">
+                TARGET: {scenario.character.role.toUpperCase()}
+              </span>
+            </div>
           </div>
 
-          {/* Episode Title */}
+          {/* Episode Title Banner */}
           <div className="space-y-2">
-            <span className="font-mono text-xs uppercase tracking-wider text-paper-400">
-              EPISODE TITLE:
-            </span>
-            <h1 className="font-display font-extrabold text-2xl sm:text-4xl text-paper-50 tracking-tight leading-tight">
+            <div className="inline-block bg-comic-pink text-white font-mono font-black text-xs px-3 py-1 rounded-lg border-2 border-black shadow-cartoon-sm uppercase">
+              EPISODE BRIEFING
+            </div>
+            <h1 className="font-display font-black text-3xl sm:text-5xl text-black tracking-tight leading-tight uppercase">
               {scenario.title}
             </h1>
           </div>
 
-          {/* Character Dossier Mini-Card */}
-          <div className="bg-ink-950 border border-ink-800 rounded-2xl p-4 flex items-center gap-4">
-            <CharacterAvatar
-              seed={scenario.character.avatarSeed}
-              name={scenario.character.name}
-              accentColor={scenario.character.accentColor}
-              size="lg"
-              mood={scenario.character.quirks?.initialMood || 'neutral'}
-              showMoodBadge={true}
-            />
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-paper-50 text-base">
+          {/* Character Dossier Comic Card */}
+          <div className="bg-white border-3 border-black rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 shadow-cartoon">
+            <div className="relative">
+              <CharacterAvatar
+                seed={scenario.character.avatarSeed}
+                name={scenario.character.name}
+                accentColor={scenario.character.accentColor || '#FFE600'}
+                size="xl"
+                mood={scenario.character.quirks?.initialMood || 'neutral'}
+                showMoodBadge={true}
+              />
+            </div>
+            <div className="space-y-2 text-center sm:text-left flex-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <span className="font-display font-black text-black text-lg sm:text-xl">
                   {scenario.character.name}
                 </span>
-                <span className="font-mono text-xs text-paper-400">
+                <span className="bg-comic-cyan text-black font-mono text-xs font-black px-2.5 py-0.5 rounded-full border-2 border-black shadow-cartoon-sm">
                   [{scenario.character.role}]
                 </span>
               </div>
-              <p className="text-xs text-paper-300 font-sans line-clamp-2">
+              <p className="text-xs sm:text-sm text-ink-800 font-sans font-medium leading-relaxed">
                 {scenario.character.bio}
               </p>
               {scenario.character.quirks && (
-                <div className="font-mono text-[11px] text-paper-400 pt-1 flex items-center gap-2">
-                  <span className="text-amber">TEMPERAMENT:</span>
-                  <span className="text-paper-200">
+                <div className="bg-comic-yellow/30 border-2 border-black rounded-xl p-2.5 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs font-mono">
+                  <span className="bg-black text-white font-black px-2 py-0.5 rounded text-[11px]">
+                    TEMPERAMENT
+                  </span>
+                  <span className="font-bold text-black">
                     {scenario.character.quirks.initialMoodDesc}
                   </span>
                 </div>
@@ -106,41 +119,44 @@ export const EpisodeTitleCard: React.FC<EpisodeTitleCardProps> = ({ scenario, on
             </div>
           </div>
 
-          {/* The Stakes & Situation */}
-          <div className="space-y-3 bg-ink-950/60 border border-ink-800/80 rounded-2xl p-4 sm:p-5">
-            <div>
-              <span className="font-mono text-[11px] text-coral font-bold tracking-wider uppercase block mb-1">
-                THE SITUATION
-              </span>
-              <p className="font-sans text-xs sm:text-sm text-paper-200 leading-relaxed">
-                {scenario.context}
-              </p>
+          {/* Situation & Stakes Comic Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border-3 border-black rounded-2xl p-4 sm:p-5 shadow-cartoon flex flex-col justify-between">
+              <div>
+                <span className="bg-comic-orange text-white font-mono font-black text-xs px-2.5 py-1 rounded-md border-2 border-black shadow-cartoon-sm inline-block uppercase mb-2">
+                  THE SITUATION
+                </span>
+                <p className="font-sans text-xs sm:text-sm font-medium text-black leading-relaxed">
+                  {scenario.context}
+                </p>
+              </div>
             </div>
 
-            <div className="pt-2 border-t border-ink-800/60">
-              <span className="font-mono text-[11px] text-amber font-bold tracking-wider uppercase block mb-1">
-                THE PREMISE / STAKES
-              </span>
-              <p className="font-sans text-xs sm:text-sm text-paper-300 italic leading-relaxed">
-                "{scenario.tagline}"
-              </p>
+            <div className="bg-white border-3 border-black rounded-2xl p-4 sm:p-5 shadow-cartoon flex flex-col justify-between">
+              <div>
+                <span className="bg-comic-purple text-white font-mono font-black text-xs px-2.5 py-1 rounded-md border-2 border-black shadow-cartoon-sm inline-block uppercase mb-2">
+                  THE PREMISE & STAKES
+                </span>
+                <p className="font-sans text-xs sm:text-sm font-black text-black italic leading-relaxed">
+                  "{scenario.tagline}"
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Action Call / Launch Button */}
+          {/* Launch Controls */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="font-mono text-[11px] text-paper-400 hidden sm:inline-block">
-              Press <kbd className="px-1.5 py-0.5 bg-ink-800 border border-ink-700 rounded text-paper-200">SPACE</kbd> or <kbd className="px-1.5 py-0.5 bg-ink-800 border border-ink-700 rounded text-paper-200">ENTER</kbd> to enter
+            <span className="font-mono text-xs font-bold text-ink-800 hidden sm:inline-block">
+              Press <kbd className="px-2 py-1 bg-comic-yellow text-black border-2 border-black rounded-lg font-black shadow-cartoon-sm">SPACE</kbd> or <kbd className="px-2 py-1 bg-comic-yellow text-black border-2 border-black rounded-lg font-black shadow-cartoon-sm">ENTER</kbd> to launch!
             </span>
 
-            <Button
-              variant="primary"
-              size="lg"
+            <button
+              type="button"
               onClick={handleBegin}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto bg-comic-green hover:bg-comic-yellow text-black font-display font-black text-base sm:text-lg px-8 py-3.5 rounded-2xl border-4 border-black shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 transition-transform cursor-pointer flex items-center justify-center gap-2"
             >
-              Enter Scenario →
-            </Button>
+              <span>🎮 ENTER SCENARIO →</span>
+            </button>
           </div>
         </div>
       </div>

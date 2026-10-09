@@ -32,23 +32,23 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
   const isGuarded = mood === 'annoyed' || mood === 'guarded' || mood === 'hesitant';
 
   const moodAuraMap: Record<CharacterMood, string> = {
-    amused: 'ring-2 ring-amber/90 shadow-[0_0_14px_rgba(229,169,59,0.45)]',
-    warm: 'ring-2 ring-mint/90 shadow-[0_0_14px_rgba(0,229,153,0.45)]',
-    annoyed: 'ring-2 ring-coral/90 shadow-[0_0_14px_rgba(255,92,53,0.45)]',
-    hesitant: 'ring-2 ring-amber-400/60 shadow-[0_0_10px_rgba(251,191,36,0.3)]',
-    guarded: 'ring-2 ring-slate-400/60 shadow-[0_0_10px_rgba(148,163,184,0.3)]',
-    relieved: 'ring-2 ring-teal-400/90 shadow-[0_0_14px_rgba(45,212,191,0.4)]',
-    neutral: 'ring-1 ring-ink-700'
+    amused: 'ring-2 ring-comic-yellow shadow-cartoon',
+    warm: 'ring-2 ring-comic-green shadow-cartoon',
+    annoyed: 'ring-2 ring-comic-pink shadow-cartoon',
+    hesitant: 'ring-2 ring-comic-orange shadow-cartoon',
+    guarded: 'ring-2 ring-gray-400 shadow-cartoon',
+    relieved: 'ring-2 ring-comic-cyan shadow-cartoon',
+    neutral: 'ring-2 ring-black shadow-cartoon'
   };
 
   const moodDotColor: Record<CharacterMood, string> = {
-    amused: 'bg-amber',
-    warm: 'bg-mint',
-    annoyed: 'bg-coral',
-    hesitant: 'bg-amber-400',
-    guarded: 'bg-slate-400',
-    relieved: 'bg-teal-400',
-    neutral: 'bg-ink-500'
+    amused: 'bg-comic-yellow border-2 border-black',
+    warm: 'bg-comic-green border-2 border-black',
+    annoyed: 'bg-comic-pink border-2 border-black',
+    hesitant: 'bg-comic-orange border-2 border-black',
+    guarded: 'bg-gray-400 border-2 border-black',
+    relieved: 'bg-comic-cyan border-2 border-black',
+    neutral: 'bg-white border-2 border-black'
   };
 
   // Helper for expressive mouth path based on mood
@@ -324,13 +324,15 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
   return (
     <div
       aria-label={`Portrait of ${name} (${mood})`}
-      className={`relative inline-flex items-center justify-center rounded-2xl bg-ink-950 border overflow-hidden flex-shrink-0 transition-all duration-300 ${sizeMap[size]} ${moodAuraMap[mood]} ${className}`}
+      className={`relative inline-flex items-center justify-center rounded-2xl bg-white border-3 border-black overflow-visible flex-shrink-0 transition-all duration-300 shadow-cartoon ${moodAuraMap[mood]} ${sizeMap[size]} ${className}`}
     >
-      {renderCharacterPortrait()}
+      <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center">
+        {renderCharacterPortrait()}
+      </div>
       {showMoodBadge && (
         <span
           title={`Mood: ${mood}`}
-          className={`absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-ink-950 transition-colors duration-300 ${moodDotColor[mood]}`}
+          className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full transition-colors duration-300 shadow-cartoon-sm z-10 ${moodDotColor[mood]}`}
         />
       )}
     </div>

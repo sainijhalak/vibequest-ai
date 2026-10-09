@@ -24,31 +24,35 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
     : '';
 
   const defaultClasses = isUser
-    ? 'bg-coral-tint border border-coral/40 text-paper-50 rounded-2xl rounded-br-sm shadow-sm'
-    : 'bg-ink-850 border border-ink-700 text-paper-50 rounded-2xl rounded-bl-sm shadow-sm';
+    ? 'bg-comic-yellow text-black border-3 border-black rounded-2xl rounded-br-none shadow-cartoon font-sans font-bold'
+    : 'bg-white text-black border-3 border-black rounded-2xl rounded-bl-none shadow-cartoon font-sans font-medium';
 
   return (
     <div
       className={`flex flex-col ${
         isUser ? 'items-end ml-auto' : 'items-start mr-auto'
-      } my-2.5 max-w-[90%] sm:max-w-[78%] animate-message-enter`}
+      } my-3 max-w-[92%] sm:max-w-[80%] animate-message-enter`}
     >
-      {/* Meta bar: Sender & Timestamp */}
-      <div className="flex items-center gap-2 mb-1 px-1 text-[11px] font-mono text-paper-400 select-none">
-        <span className={isUser ? 'text-coral font-medium' : 'text-paper-200 font-medium'}>
+      {/* Meta bar: Sender Badge & Timestamp */}
+      <div className="flex items-center gap-2 mb-1 px-1 text-xs font-mono select-none">
+        <span
+          className={`font-black px-2 py-0.5 rounded-md border-2 border-black shadow-cartoon-sm uppercase text-[11px] ${
+            isUser ? 'bg-black text-white' : 'bg-comic-yellow text-black'
+          }`}
+        >
           {isUser ? 'YOU' : senderName.toUpperCase()}
         </span>
         {isCustom && isUser && (
-          <span className="text-[10px] uppercase tracking-wider text-mint px-1 rounded bg-mint/10 border border-mint/20">
-            custom write-in
+          <span className="text-[10px] font-black uppercase tracking-wider text-black px-1.5 py-0.5 rounded-md bg-comic-green border-2 border-black shadow-cartoon-sm">
+            WRITE-IN
           </span>
         )}
-        {formattedTime && <span>• {formattedTime}</span>}
+        {formattedTime && <span className="text-gray-500 font-bold">• {formattedTime}</span>}
       </div>
 
-      {/* Bubble Container with physical easing and micro-shadow */}
+      {/* Comic Speech Bubble with thick black ink border & cartoon shadow */}
       <div
-        className={`px-4 py-3 text-xs sm:text-sm leading-relaxed transition-all ${
+        className={`px-4 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm leading-relaxed transition-all ${
           bubbleClassName || defaultClasses
         }`}
       >
@@ -69,17 +73,15 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   typingSpeedMs = 1000,
   bubbleClassName
 }) => {
-  // Vary typing behavior description and dot rhythm based on character speed quirk
   const isFastPaced = typingSpeedMs <= 850;
   const isDeliberate = typingSpeedMs >= 1400;
 
   const cadenceLabel = isFastPaced
     ? 'RAPID DRAFTING...'
     : isDeliberate
-    ? 'DELIBERATING CAREFULLY...'
+    ? 'PONDERING RESPONSE...'
     : 'TYPING...';
 
-  // Slower/faster bounce animation duration based on character pacing
   const bounceDurationClass = isFastPaced
     ? 'duration-500'
     : isDeliberate
@@ -87,24 +89,27 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
     : 'duration-700';
 
   return (
-    <div className="flex flex-col items-start my-2.5 max-w-[80%] animate-message-enter">
-      <div className="px-1 text-[11px] font-mono text-paper-400 mb-1 select-none flex items-center gap-1.5">
-        <span className="text-paper-300 font-semibold">{characterName.toUpperCase()}</span>
-        <span className="text-coral/80">{cadenceLabel}</span>
+    <div className="flex flex-col items-start my-3 max-w-[80%] animate-message-enter">
+      <div className="px-1 text-xs font-mono mb-1 select-none flex items-center gap-2">
+        <span className="bg-comic-yellow text-black font-black px-2 py-0.5 rounded-md border-2 border-black shadow-cartoon-sm text-[11px]">
+          {characterName.toUpperCase()}
+        </span>
+        <span className="bg-comic-pink text-white font-black px-2 py-0.5 rounded-md border-2 border-black shadow-cartoon-sm text-[10px]">
+          {cadenceLabel}
+        </span>
       </div>
-      <div className={`px-4 py-3 flex items-center space-x-1.5 ${bubbleClassName || 'bg-ink-850 border border-ink-700 rounded-2xl rounded-bl-sm shadow-sm'}`}>
-        <span className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass}`} />
+      <div
+        className={`px-5 py-3.5 flex items-center space-x-2 ${
+          bubbleClassName || 'bg-white text-black border-3 border-black rounded-2xl rounded-bl-none shadow-cartoon'
+        }`}
+      >
+        <span className={`w-2.5 h-2.5 rounded-full bg-black animate-bounce border border-black ${bounceDurationClass}`} />
         <span
-          className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass} [animation-delay:150ms]`}
+          className={`w-2.5 h-2.5 rounded-full bg-black animate-bounce border border-black ${bounceDurationClass} [animation-delay:150ms]`}
         />
         <span
-          className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass} [animation-delay:300ms]`}
+          className={`w-2.5 h-2.5 rounded-full bg-black animate-bounce border border-black ${bounceDurationClass} [animation-delay:300ms]`}
         />
-        {isDeliberate && (
-          <span
-            className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass} [animation-delay:450ms]`}
-          />
-        )}
       </div>
     </div>
   );

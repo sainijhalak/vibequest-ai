@@ -31,21 +31,18 @@ export const ChoiceCard: React.FC<ChoiceCardProps> = ({
       type="button"
       disabled={disabled}
       onClick={handleClick}
-      className={`w-full text-left bg-ink-900 hover:bg-ink-850 border border-ink-700 hover:border-coral/70 rounded-xl p-4 transition-all duration-150 ease-out group hover:scale-[1.012] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:transform-none flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-coral relative overflow-hidden hover:shadow-[0_4px_24px_rgba(255,92,53,0.12)] ${className}`}
+      className={`w-full text-left bg-white hover:bg-comic-yellow text-black border-3 border-black rounded-2xl p-4 transition-all duration-150 ease-out group shadow-cartoon hover:shadow-cartoon-lg hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none disabled:transform-none flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-black relative cursor-pointer ${className}`}
     >
-      {/* Left accent indicator bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-coral transition-colors duration-150" />
-
-      <div className="flex items-center justify-between gap-2 mb-2 w-full pl-1">
-        <span className="font-mono text-[11px] font-semibold text-coral/90 group-hover:text-coral transition-colors">
-          [{indexStr}]
+      <div className="flex items-center justify-between gap-2 mb-2 w-full">
+        <span className="font-mono text-xs font-black bg-black text-white group-hover:bg-comic-pink group-hover:text-white px-2 py-0.5 rounded-lg border-2 border-black shadow-cartoon-sm transition-colors">
+          #{indexStr}
         </span>
-        <span className="font-display font-medium text-xs text-paper-200 group-hover:text-paper-50 tracking-tight transition-colors">
+        <span className="font-display font-black text-xs text-black uppercase tracking-wide group-hover:underline decoration-2">
           {choice.label}
         </span>
       </div>
 
-      <p className="text-xs sm:text-sm text-paper-100 font-sans leading-relaxed group-hover:text-white transition-colors pl-1">
+      <p className="text-xs sm:text-sm font-sans font-bold text-black leading-snug">
         "{choice.text}"
       </p>
     </button>
