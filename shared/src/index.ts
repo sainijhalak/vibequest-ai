@@ -84,6 +84,15 @@ export const CharacterMetaSchema = z.object({
 });
 export type CharacterMeta = z.infer<typeof CharacterMetaSchema>;
 
+export const ScenarioThemeIdSchema = z.enum([
+  'midnight_group_chat',
+  'fluorescent_hallway',
+  'cafe_golden_hour',
+  'rain_window',
+  'art_mixer'
+]);
+export type ScenarioThemeId = z.infer<typeof ScenarioThemeIdSchema>;
+
 export const ScenarioDefinitionSchema = z.object({
   id: z.string().min(1),
   mode: GameModeSchema,
@@ -94,7 +103,7 @@ export const ScenarioDefinitionSchema = z.object({
   openingMessage: z.string().min(1),
   initialChoices: z.array(ChoiceOptionSchema).min(3),
   maxTurns: z.number().int().min(2).max(6).default(3),
-  themeId: z.string().optional()
+  themeId: ScenarioThemeIdSchema.optional()
 });
 export type ScenarioDefinition = z.infer<typeof ScenarioDefinitionSchema>;
 
@@ -187,7 +196,10 @@ export const ReportResponseSchema = z.object({
   alternativeApproaches: z.array(z.string()),
   receipts: z.array(EvidenceReceiptSchema),
   whatWeCannotKnow: z.array(z.string()),
-  mockMode: z.boolean()
+  mockMode: z.boolean(),
+  archetype: z.string().optional(),
+  archetypeTagline: z.string().optional(),
+  howItLanded: z.string().optional()
 });
 export type ReportResponse = z.infer<typeof ReportResponseSchema>;
 

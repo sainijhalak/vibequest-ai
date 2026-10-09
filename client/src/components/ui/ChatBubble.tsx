@@ -6,6 +6,7 @@ interface ChatBubbleProps {
   senderName: string;
   timestamp?: string;
   isCustom?: boolean;
+  bubbleClassName?: string;
 }
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({
@@ -13,13 +14,18 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
   text,
   senderName,
   timestamp,
-  isCustom
+  isCustom,
+  bubbleClassName
 }) => {
   const isUser = speaker === 'user';
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
+
+  const defaultClasses = isUser
+    ? 'bg-coral-tint border border-coral/40 text-paper-50 rounded-2xl rounded-br-sm shadow-sm'
+    : 'bg-ink-850 border border-ink-700 text-paper-50 rounded-2xl rounded-bl-sm shadow-sm';
 
   return (
     <div
@@ -42,10 +48,8 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
 
       {/* Bubble Container with physical easing and micro-shadow */}
       <div
-        className={`px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed transition-all shadow-sm ${
-          isUser
-            ? 'bg-coral-tint border border-coral/40 text-paper-50 rounded-br-sm'
-            : 'bg-ink-850 border border-ink-700 text-paper-50 rounded-bl-sm'
+        className={`px-4 py-3 text-xs sm:text-sm leading-relaxed transition-all ${
+          bubbleClassName || defaultClasses
         }`}
       >
         <p className="whitespace-pre-wrap break-words">{text}</p>
@@ -57,11 +61,13 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({
 interface TypingIndicatorProps {
   characterName: string;
   typingSpeedMs?: number;
+  bubbleClassName?: string;
 }
 
 export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   characterName,
-  typingSpeedMs = 1000
+  typingSpeedMs = 1000,
+  bubbleClassName
 }) => {
   // Vary typing behavior description and dot rhythm based on character speed quirk
   const isFastPaced = typingSpeedMs <= 850;
@@ -86,7 +92,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
         <span className="text-paper-300 font-semibold">{characterName.toUpperCase()}</span>
         <span className="text-coral/80">{cadenceLabel}</span>
       </div>
-      <div className="bg-ink-850 border border-ink-700 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center space-x-1.5 shadow-sm">
+      <div className={`px-4 py-3 flex items-center space-x-1.5 ${bubbleClassName || 'bg-ink-850 border border-ink-700 rounded-2xl rounded-bl-sm shadow-sm'}`}>
         <span className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass}`} />
         <span
           className={`w-1.5 h-1.5 rounded-full bg-coral animate-bounce ${bounceDurationClass} [animation-delay:150ms]`}

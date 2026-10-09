@@ -16,6 +16,8 @@ import { ChoiceCard } from './ui/ChoiceCard.js';
 import { ProgressBar } from './ui/ProgressBar.js';
 import { Button } from './ui/Button.js';
 import { EpisodeTitleCard } from './ui/EpisodeTitleCard.js';
+import { getTheme } from '../themes/scenarioThemes.js';
+import { SceneIllustration } from './ui/SceneIllustration.js';
 
 interface ScenarioPlayerProps {
   scenario: ScenarioDefinition;
@@ -28,6 +30,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   onExit,
   onCompleted
 }) => {
+  const theme = getTheme(scenario.themeId);
   const [showEpisodeIntro, setShowEpisodeIntro] = useState<boolean>(true);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundFx.isEnabled());
   const [history, setHistory] = useState<Turn[]>([
@@ -268,299 +271,320 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   // If in episode title card stage, show cinematic briefing screen
   if (showEpisodeIntro) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-ink-800">
-          <button
-            onClick={onExit}
-            type="button"
-            className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors"
-          >
-            ← BACK TO SCENARIOS
-          </button>
+      <div data-theme={theme.id} className="min-h-screen py-6 sm:py-8 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-ink-800">
+            <button
+              onClick={onExit}
+              type="button"
+              className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors"
+            >
+              ← BACK TO SCENARIOS
+            </button>
 
-          <button
-            type="button"
-            onClick={handleToggleSound}
-            className={`font-mono text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 ${
-              soundEnabled
-                ? 'bg-ink-850 border-coral/60 text-coral'
-                : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
-            }`}
-            title="Toggle subtle audio effects (off by default)"
-          >
-            <span>{soundEnabled ? '🔊' : '🔇'}</span>
-            <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className={`font-mono text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 ${
+                soundEnabled
+                  ? 'bg-ink-850 border-coral/60 text-coral'
+                  : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+              }`}
+              title="Toggle subtle audio effects (off by default)"
+            >
+              <span>{soundEnabled ? '🔊' : '🔇'}</span>
+              <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
+            </button>
+          </div>
+
+          <EpisodeTitleCard
+            scenario={scenario}
+            onStart={() => setShowEpisodeIntro(false)}
+          />
         </div>
-
-        <EpisodeTitleCard
-          scenario={scenario}
-          onStart={() => setShowEpisodeIntro(false)}
-        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-      {/* Top Header & Turn Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink-700/80">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onExit}
-            type="button"
-            className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors self-start"
-          >
-            ← EXIT SCENARIO
-          </button>
+    <div data-theme={theme.id} className="min-h-screen py-6 sm:py-8 transition-colors duration-300">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+        {/* Top Header & Turn Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink-700/80">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onExit}
+              type="button"
+              className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors self-start"
+            >
+              ← EXIT SCENARIO
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setShowEpisodeIntro(true)}
-            className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
-            title="Review episode briefing"
-          >
-            [BRIEFING]
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setShowEpisodeIntro(true)}
+              className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
+              title="Review episode briefing"
+            >
+              [BRIEFING]
+            </button>
+          </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={handleToggleSound}
-            className={`font-mono text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
-              soundEnabled
-                ? 'bg-ink-850 border-coral/60 text-coral'
-                : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
-            }`}
-            title="Toggle subtle audio effects (off by default)"
-          >
-            <span>{soundEnabled ? '🔊' : '🔇'}</span>
-            <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className={`font-mono text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
+                soundEnabled
+                  ? 'bg-ink-850 border-coral/60 text-coral'
+                  : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+              }`}
+              title="Toggle subtle audio effects (off by default)"
+            >
+              <span>{soundEnabled ? '🔊' : '🔇'}</span>
+              <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
+            </button>
 
-          <ProgressBar
-            currentTurn={userTurnsCount}
-            maxTurns={scenario.maxTurns}
-            className="sm:w-56"
-          />
-        </div>
-      </div>
-
-      {/* Character Dossier Banner & Mood Meter */}
-      <div className="bg-ink-900 border border-ink-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <CharacterAvatar
-              seed={scenario.character.avatarSeed}
-              name={scenario.character.name}
-              accentColor={scenario.character.accentColor}
-              size="lg"
-              mood={characterMood}
-              showMoodBadge={true}
+            <ProgressBar
+              currentTurn={userTurnsCount}
+              maxTurns={scenario.maxTurns}
+              className="sm:w-56"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-display font-bold text-base sm:text-lg text-paper-50">
-                  {scenario.character.name}
-                </h2>
-                <span className="font-mono text-xs text-paper-400">
-                  ({scenario.character.role})
+          </div>
+        </div>
+
+        {/* Bespoke Scene Art Header Banner & Character Dossier */}
+        <div className="bg-ink-900 border border-ink-700/80 rounded-2xl overflow-hidden shadow-xl">
+          {/* Layered SVG Scene Illustration */}
+          <SceneIllustration scenarioId={scenario.id} themeId={theme.id} />
+
+          {/* Character Dossier Banner & Mood Meter */}
+          <div className="p-4 sm:p-5 flex flex-col gap-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <CharacterAvatar
+                  seed={scenario.character.avatarSeed}
+                  name={scenario.character.name}
+                  accentColor={theme.tokens.accent}
+                  size="lg"
+                  mood={characterMood}
+                  showMoodBadge={true}
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display font-bold text-base sm:text-lg text-paper-50">
+                      {scenario.character.name}
+                    </h2>
+                    <span className="font-mono text-xs text-paper-400">
+                      ({scenario.character.role})
+                    </span>
+                  </div>
+                  <p className="text-xs text-paper-300 line-clamp-1 mt-0.5 font-sans">
+                    {scenario.character.bio}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div
+                  className="px-2.5 py-1 rounded border text-[11px] font-mono tracking-wide"
+                  style={{
+                    borderColor: theme.tokens.border,
+                    color: theme.tokens.accent,
+                    backgroundColor: theme.tokens.surface
+                  }}
+                >
+                  {theme.environment}
+                </div>
+              </div>
+            </div>
+
+            {/* Live Story Mood Meter */}
+            <div className="bg-ink-950/80 border border-ink-800 rounded-xl px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-[11px] text-paper-400 uppercase tracking-wider">
+                  {scenario.character.name.split(' ')[0]}'S MOOD:
+                </span>
+                <span className={`font-mono text-[11px] px-2 py-0.5 rounded border uppercase font-medium transition-all duration-300 ${getMoodBadgeClasses(characterMood)}`}>
+                  ● {characterMood}
+                </span>
+                <span className="text-paper-300 text-xs italic font-sans truncate max-w-xs sm:max-w-md">
+                  "{characterMoodDesc}"
                 </span>
               </div>
-              <p className="text-xs text-paper-300 line-clamp-1 mt-0.5 font-sans">
-                {scenario.character.bio}
-              </p>
-            </div>
-          </div>
 
-          <div className="bg-ink-950 border border-ink-800 rounded-xl px-3 py-2 text-xs font-sans text-paper-300 md:max-w-xs">
-            <span className="text-coral font-mono text-[11px] block uppercase mb-0.5">CONTEXT:</span>
-            <p className="line-clamp-2 leading-relaxed">{scenario.context}</p>
+              {scenario.character.quirks && (
+                <div className="font-mono text-[10px] text-paper-400 flex items-center gap-1.5 sm:self-auto self-start border-t sm:border-t-0 border-ink-800 pt-1 sm:pt-0">
+                  <span className="uppercase" style={{ color: theme.tokens.accent }}>QUIRK:</span>
+                  <span className="text-paper-300">{scenario.character.quirks.emojiHabit}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Live Story Mood Meter */}
-        <div className="bg-ink-950 border border-ink-800 rounded-xl px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-[11px] text-paper-400 uppercase tracking-wider">
-              {scenario.character.name.split(' ')[0]}'S MOOD:
-            </span>
-            <span className={`font-mono text-[11px] px-2 py-0.5 rounded border uppercase font-medium transition-all duration-300 ${getMoodBadgeClasses(characterMood)}`}>
-              ● {characterMood}
-            </span>
-            <span className="text-paper-300 text-xs italic font-sans truncate max-w-xs sm:max-w-md">
-              "{characterMoodDesc}"
-            </span>
-          </div>
+        {/* Real Messenger Dialogue Viewport */}
+        <div className="bg-ink-950/90 border border-ink-700/80 rounded-2xl p-4 sm:p-6 min-h-[380px] max-h-[520px] overflow-y-auto space-y-3.5 shadow-inner">
+          {history.map((turn, idx) => (
+            <ChatBubble
+              key={idx}
+              speaker={turn.speaker}
+              text={turn.text}
+              senderName={scenario.character.name}
+              timestamp={turn.timestamp}
+              isCustom={turn.isCustom}
+              bubbleClassName={turn.speaker === 'user' ? theme.classes.userBubble : theme.classes.characterBubble}
+            />
+          ))}
 
-          {scenario.character.quirks && (
-            <div className="font-mono text-[10px] text-paper-400 flex items-center gap-1.5 sm:self-auto self-start border-t sm:border-t-0 border-ink-800 pt-1 sm:pt-0">
-              <span className="text-coral uppercase">QUIRK:</span>
-              <span className="text-paper-300">{scenario.character.quirks.emojiHabit}</span>
-            </div>
+          {isLoading && (
+            <TypingIndicator
+              characterName={scenario.character.name}
+              typingSpeedMs={scenario.character.quirks?.typingSpeedMs}
+              bubbleClassName={theme.classes.characterBubble}
+            />
           )}
+
+          <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* Real Messenger Dialogue Viewport */}
-      <div className="bg-ink-950 border border-ink-700 rounded-2xl p-4 sm:p-6 min-h-[380px] max-h-[520px] overflow-y-auto space-y-3.5 shadow-inner">
-        {history.map((turn, idx) => (
-          <ChatBubble
-            key={idx}
-            speaker={turn.speaker}
-            text={turn.text}
-            senderName={scenario.character.name}
-            timestamp={turn.timestamp}
-            isCustom={turn.isCustom}
-          />
-        ))}
-
-        {isLoading && (
-          <TypingIndicator
-            characterName={scenario.character.name}
-            typingSpeedMs={scenario.character.quirks?.typingSpeedMs}
-          />
+        {/* Error Notice */}
+        {error && (
+          <div className="p-3.5 rounded-xl bg-coral-tint border border-coral/50 text-coral text-xs font-mono flex items-center justify-between">
+            <span>[ERROR]: {error}</span>
+            <button
+              onClick={() => setError(null)}
+              type="button"
+              className="underline ml-3"
+            >
+              Dismiss
+            </button>
+          </div>
         )}
 
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Error Notice */}
-      {error && (
-        <div className="p-3.5 rounded-xl bg-coral-tint border border-coral/50 text-coral text-xs font-mono flex items-center justify-between">
-          <span>[ERROR]: {error}</span>
-          <button
-            onClick={() => setError(null)}
-            type="button"
-            className="underline ml-3"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      {/* Interactive Controls / Action Station */}
-      {isFinished ? (
-        <div className="bg-ink-900 border border-coral/50 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl">
-          <div className="font-mono text-xs text-coral uppercase tracking-wider">
-            SCENARIO CONCLUDED
-          </div>
-          <h3 className="text-xl sm:text-2xl font-display font-bold text-paper-50 tracking-tight">
-            Ready to review your communication receipts?
-          </h3>
-          <p className="text-xs sm:text-sm text-paper-300 max-w-lg mx-auto font-sans leading-relaxed">
-            We will calculate your deterministic scores across 4 behavioral dimensions and synthesize an evidence-backed debrief citing your exact choices.
-          </p>
-
-          <div className="pt-2 flex flex-col items-center gap-3">
-            <Button
-              variant="primary"
-              size="lg"
-              isLoading={isEvaluating}
-              onClick={handleGenerateReport}
-              className="mx-auto"
-            >
-              Reveal Your Reflection & Receipts →
-            </Button>
-
-            {isEvaluating && evaluatingSeconds >= 3 && (
-              <div className="font-mono text-xs text-amber animate-pulse">
-                [SERVER STATUS]: Waking up server from idle sleep... ({evaluatingSeconds}s elapsed)
-              </div>
-            )}
-
-            {(error || evaluatingSeconds >= 5) && (
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateReport}
-                  disabled={isEvaluating}
-                >
-                  ↺ Retry Reflection Call
-                </Button>
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleInstantDeterministicScores}
-                >
-                  ⚡ View Instant Scores & Receipts Now
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-paper-300 font-medium">CHOOSE YOUR TACTIC:</span>
-            <button
-              type="button"
-              onClick={() => setIsCustomMode(!isCustomMode)}
-              className="text-coral hover:text-coral-hover underline underline-offset-4 transition-colors"
-            >
-              {isCustomMode ? '← View Preset Choices' : 'Write Custom Response →'}
-            </button>
-          </div>
-
-          {!isCustomMode ? (
-            /* 4-5 Tactile Choice Cards Grid */
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {currentChoices.map((choice, idx) => (
-                <ChoiceCard
-                  key={choice.id}
-                  choice={choice}
-                  index={idx}
-                  disabled={isLoading}
-                  onSelect={handleSelectChoice}
-                />
-              ))}
+        {/* Interactive Controls / Action Station */}
+        {isFinished ? (
+          <div className="bg-ink-900 border border-coral/50 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl">
+            <div className="font-mono text-xs text-coral uppercase tracking-wider">
+              SCENARIO CONCLUDED
             </div>
-          ) : (
-            /* Custom Text Input Area */
-            <form onSubmit={handleCustomSubmit} className="bg-ink-900 border border-ink-700 rounded-2xl p-4 space-y-3">
-              <label htmlFor="custom-reply" className="block text-xs font-mono text-paper-300">
-                WRITE WHAT YOU WOULD ACTUALLY SAY:
-              </label>
-              <textarea
-                id="custom-reply"
-                value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
-                placeholder={`Type your reply to ${scenario.character.name}...`}
-                rows={3}
-                maxLength={800}
-                className="w-full bg-ink-950 border border-ink-700 rounded-xl p-3 text-xs sm:text-sm text-paper-50 placeholder:text-paper-400 focus:outline-none focus:border-coral transition-colors resize-none font-sans"
-              />
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono text-paper-400">
-                  {customText.length}/800 characters
-                </span>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={!customText.trim() || isLoading}
-                >
-                  Send Message
-                </Button>
-              </div>
-            </form>
-          )}
+            <h3 className="text-xl sm:text-2xl font-display font-bold text-paper-50 tracking-tight">
+              Ready to review your communication receipts?
+            </h3>
+            <p className="text-xs sm:text-sm text-paper-300 max-w-lg mx-auto font-sans leading-relaxed">
+              We will calculate your deterministic scores across 4 behavioral dimensions and synthesize an evidence-backed debrief citing your exact choices.
+            </p>
 
-          {/* End Conversation Early Option */}
-          <div className="pt-2 text-center">
-            <button
-              type="button"
-              onClick={() => setIsFinished(true)}
-              className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
-            >
-              End scenario here & review what we observed so far
-            </button>
+            <div className="pt-2 flex flex-col items-center gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                isLoading={isEvaluating}
+                onClick={handleGenerateReport}
+                className="mx-auto"
+              >
+                Reveal Your Reflection & Receipts →
+              </Button>
+
+              {isEvaluating && evaluatingSeconds >= 3 && (
+                <div className="font-mono text-xs text-amber animate-pulse">
+                  [SERVER STATUS]: Waking up server from idle sleep... ({evaluatingSeconds}s elapsed)
+                </div>
+              )}
+
+              {(error || evaluatingSeconds >= 5) && (
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateReport}
+                    disabled={isEvaluating}
+                  >
+                    ↺ Retry Reflection Call
+                  </Button>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleInstantDeterministicScores}
+                  >
+                    ⚡ View Instant Scores & Receipts Now
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-paper-300 font-medium">CHOOSE YOUR TACTIC:</span>
+              <button
+                type="button"
+                onClick={() => setIsCustomMode(!isCustomMode)}
+                className="text-coral hover:text-coral-hover underline underline-offset-4 transition-colors"
+              >
+                {isCustomMode ? '← View Preset Choices' : 'Write Custom Response →'}
+              </button>
+            </div>
+
+            {!isCustomMode ? (
+              /* 4-5 Tactile Choice Cards Grid */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {currentChoices.map((choice, idx) => (
+                  <ChoiceCard
+                    key={choice.id}
+                    choice={choice}
+                    index={idx}
+                    disabled={isLoading}
+                    onSelect={handleSelectChoice}
+                    className={theme.classes.choiceCard}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* Custom Text Input Area */
+              <form onSubmit={handleCustomSubmit} className="bg-ink-900 border border-ink-700 rounded-2xl p-4 space-y-3">
+                <label htmlFor="custom-reply" className="block text-xs font-mono text-paper-300">
+                  WRITE WHAT YOU WOULD ACTUALLY SAY:
+                </label>
+                <textarea
+                  id="custom-reply"
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={`Type your reply to ${scenario.character.name}...`}
+                  rows={3}
+                  maxLength={800}
+                  className="w-full bg-ink-950 border border-ink-700 rounded-xl p-3 text-xs sm:text-sm text-paper-50 placeholder:text-paper-400 focus:outline-none focus:border-coral transition-colors resize-none font-sans"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-paper-400">
+                    {customText.length}/800 characters
+                  </span>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={!customText.trim() || isLoading}
+                  >
+                    Send Message
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {/* End Conversation Early Option */}
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setIsFinished(true)}
+                className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
+              >
+                End scenario here & review what we observed so far
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

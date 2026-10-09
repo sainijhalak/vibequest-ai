@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ReportResponse, BehavioralDimension } from '@vibequest/shared';
 import { Button } from './ui/Button.js';
+import { CharacterAvatar } from './ui/CharacterAvatar.js';
 
 interface ReportPageProps {
   report: ReportResponse;
@@ -13,6 +14,8 @@ export const ReportPage: React.FC<ReportPageProps> = ({
   onReplay,
   onExploreMore
 }) => {
+  const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null);
+
   const dimensionMeta: Record<BehavioralDimension, { title: string; leftLabel: string; rightLabel: string }> = {
     directness: {
       title: 'Directness Spectrum',
@@ -42,7 +45,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
         if (obsCount === 1) {
           return (
             <span className="font-mono text-[10px] text-amber px-2 py-0.5 rounded bg-amber-tint border border-amber/40">
-              [EMERGING SIGNAL • 1/2 CLUES FOUND]
+              [EMERGING SIGNAL • 1/2 OBSERVATIONS]
             </span>
           );
         }
@@ -70,11 +73,29 @@ export const ReportPage: React.FC<ReportPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-12">
       {/* Editorial Header */}
-      <div className="border-b border-ink-700/80 pb-6 space-y-2">
+      <div className="border-b border-ink-700/80 pb-6 space-y-3">
         <div className="flex items-center justify-between font-mono text-xs text-paper-400">
           <span>RECEIPT DEBRIEF #{report.scenarioId.toUpperCase()}</span>
-          <span>COMPLETED TRANSCRIPT</span>
+          <span className="text-mint font-semibold">● SYNTHESIS COMPLETE</span>
         </div>
+
+        {/* Behavioral Archetype Banner */}
+        {report.archetype && (
+          <div className="inline-flex flex-col sm:flex-row sm:items-center gap-2 px-3 py-1.5 rounded-xl bg-coral-tint border border-coral/50">
+            <span className="font-mono text-[11px] text-coral font-bold tracking-wider uppercase">
+              BEHAVIORAL ARCHETYPE:
+            </span>
+            <span className="font-display font-bold text-sm text-paper-50">
+              {report.archetype}
+            </span>
+            {report.archetypeTagline && (
+              <span className="font-sans text-xs text-paper-300 italic hidden sm:inline">
+                — "{report.archetypeTagline}"
+              </span>
+            )}
+          </div>
+        )}
+
         <h1 className="text-3xl sm:text-4xl font-display font-bold text-paper-50 tracking-tight">
           Your Behavioral Reflection
         </h1>
@@ -84,7 +105,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
       </div>
 
       {/* Vibe Snapshot Summary Card */}
-      <section className="bg-ink-900 border border-ink-700 rounded-2xl p-6 sm:p-8 space-y-4 shadow-xl">
+      <section className="bg-ink-900 border border-ink-700 rounded-2xl p-6 sm:p-8 space-y-4 shadow-xl relative overflow-hidden">
         <div className="flex items-center gap-2 font-mono text-xs text-mint">
           <span className="w-2 h-2 rounded-full bg-mint" />
           <span>SYNTHESIS: HOW YOU SHOWED UP</span>
@@ -94,7 +115,31 @@ export const ReportPage: React.FC<ReportPageProps> = ({
         </p>
       </section>
 
-      {/* Custom Designed Dimension Meters (Not Default Charts) */}
+      {/* "How It Landed with Character" Card */}
+      {report.howItLanded && (
+        <section className="bg-ink-950 border border-amber/40 rounded-2xl p-5 sm:p-6 space-y-3 shadow-lg">
+          <div className="flex items-center gap-3 border-b border-ink-800 pb-2.5">
+            <CharacterAvatar
+              seed={report.characterName.toLowerCase().split(' ')[0]}
+              name={report.characterName}
+              size="sm"
+            />
+            <div>
+              <span className="font-mono text-[11px] text-amber font-semibold tracking-wider block">
+                HOW IT LANDED WITH {report.characterName.toUpperCase()}
+              </span>
+              <span className="font-sans text-xs text-paper-400">
+                Fictional character's genuine internal perception
+              </span>
+            </div>
+          </div>
+          <p className="text-sm font-sans text-paper-200 italic leading-relaxed pl-2 border-l-2 border-amber/60">
+            {report.howItLanded}
+          </p>
+        </section>
+      )}
+
+      {/* Custom Designed Dimension Meters */}
       <section className="space-y-6">
         <div className="flex items-end justify-between border-b border-ink-700/80 pb-3">
           <div>
@@ -225,34 +270,42 @@ export const ReportPage: React.FC<ReportPageProps> = ({
             The Receipts (Supporting Evidence)
           </h2>
           <p className="font-mono text-xs text-paper-400">
-            Every observation is anchored to your exact quotes during the encounter.
+            Every observation is anchored to your exact quotes during the encounter. Tap a receipt to highlight.
           </p>
         </div>
 
         <div className="space-y-3">
-          {report.receipts.map((receipt) => (
-            <div
-              key={receipt.id}
-              className="bg-ink-950 border-l-2 border-l-coral border border-ink-800 rounded-r-xl p-4 font-mono text-xs space-y-2"
-            >
-              <div className="flex items-center justify-between text-[11px] text-paper-400">
-                <span className="text-coral">
-                  RECEIPT #{receipt.id} • TURN {String(receipt.turnNumber).padStart(2, '0')}
-                </span>
-                <span className="uppercase text-paper-300">
-                  LINKED: {receipt.dimension.replace('_', ' ')}
-                </span>
-              </div>
+          {report.receipts.map((receipt) => {
+            const isSelected = selectedReceiptId === receipt.id;
+            return (
+              <div
+                key={receipt.id}
+                onClick={() => setSelectedReceiptId(isSelected ? null : receipt.id)}
+                className={`cursor-pointer transition-all border rounded-r-xl p-4 font-mono text-xs space-y-2 ${
+                  isSelected
+                    ? 'bg-ink-850 border-coral shadow-[0_0_20px_rgba(255,92,53,0.15)] border-l-4 border-l-coral'
+                    : 'bg-ink-950 border-ink-800 hover:border-ink-700 border-l-2 border-l-coral'
+                }`}
+              >
+                <div className="flex items-center justify-between text-[11px] text-paper-400">
+                  <span className="text-coral font-bold">
+                    RECEIPT #{receipt.id} • TURN {String(receipt.turnNumber).padStart(2, '0')}
+                  </span>
+                  <span className="uppercase text-paper-300">
+                    LINKED: {receipt.dimension.replace('_', ' ')}
+                  </span>
+                </div>
 
-              <p className="font-sans text-paper-100 text-xs sm:text-sm italic pl-2 border-l border-ink-700">
-                "{receipt.quote}"
-              </p>
+                <p className="font-sans text-paper-100 text-xs sm:text-sm italic pl-2 border-l border-ink-700">
+                  "{receipt.quote}"
+                </p>
 
-              <div className="text-paper-300 text-[11px]">
-                <strong className="text-paper-200">Observed impact:</strong> {receipt.observation}
+                <div className="text-paper-300 text-[11px]">
+                  <strong className="text-paper-200">Observed impact:</strong> {receipt.observation}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

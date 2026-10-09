@@ -7,13 +7,15 @@ interface ChoiceCardProps {
   index: number;
   disabled?: boolean;
   onSelect: (choice: ChoiceOption) => void;
+  className?: string;
 }
 
 export const ChoiceCard: React.FC<ChoiceCardProps> = ({
   choice,
   index,
   disabled = false,
-  onSelect
+  onSelect,
+  className = ''
 }) => {
   const indexStr = String(index + 1).padStart(2, '0');
 
@@ -29,7 +31,7 @@ export const ChoiceCard: React.FC<ChoiceCardProps> = ({
       type="button"
       disabled={disabled}
       onClick={handleClick}
-      className="w-full text-left bg-ink-900 hover:bg-ink-850 border border-ink-700 hover:border-coral/70 rounded-xl p-4 transition-all duration-150 ease-out group hover:scale-[1.012] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:transform-none flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-coral relative overflow-hidden hover:shadow-[0_4px_24px_rgba(255,92,53,0.12)]"
+      className={`w-full text-left bg-ink-900 hover:bg-ink-850 border border-ink-700 hover:border-coral/70 rounded-xl p-4 transition-all duration-150 ease-out group hover:scale-[1.012] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:transform-none flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-coral relative overflow-hidden hover:shadow-[0_4px_24px_rgba(255,92,53,0.12)] ${className}`}
     >
       {/* Left accent indicator bar */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-coral transition-colors duration-150" />

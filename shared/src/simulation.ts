@@ -64,7 +64,7 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
           for (const impact of choice.impacts) {
             accumulators[impact.dimension].deltas.push(impact.delta);
             accumulators[impact.dimension].receipts.push({
-              id: `rcpt_${receiptCounter++}`,
+              id: `rcpt_${String(receiptCounter++).padStart(3, '0')}`,
               turnNumber: turn.turnNumber,
               quote: turn.text,
               dimension: impact.dimension,
@@ -77,25 +77,36 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
       // Fallback text heuristics for custom write-ins or unlisted choices
       if (!matchedChoice) {
         const lower = turn.text.toLowerCase();
-        if (lower.includes('why') || lower.includes('what happened') || lower.includes('tell me')) {
+        if (lower.includes('why') || lower.includes('what happened') || lower.includes('tell me') || lower.includes('how are you')) {
           accumulators.perspective_taking.deltas.push(1);
           accumulators.perspective_taking.receipts.push({
-            id: `rcpt_${receiptCounter++}`,
+            id: `rcpt_${String(receiptCounter++).padStart(3, '0')}`,
             turnNumber: turn.turnNumber,
             quote: turn.text,
             dimension: 'perspective_taking',
-            observation: 'Asked open inquiry to understand their side'
+            observation: 'Asked open inquiry to understand counterpart\'s side'
           });
         }
-        if (lower.includes('honestly') || lower.includes('directly') || lower.includes('not cool') || lower.includes('unacceptable')) {
+        if (lower.includes('honestly') || lower.includes('directly') || lower.includes('not cool') || lower.includes('unacceptable') || lower.includes('stop')) {
           accumulators.directness.deltas.push(2);
           accumulators.boundary_expression.deltas.push(1);
           accumulators.directness.receipts.push({
-            id: `rcpt_${receiptCounter++}`,
+            id: `rcpt_${String(receiptCounter++).padStart(3, '0')}`,
             turnNumber: turn.turnNumber,
             quote: turn.text,
             dimension: 'directness',
             observation: 'Used explicit, unambiguous phrasing'
+          });
+        }
+        if (lower.includes('no worries') || lower.includes('it is fine') || lower.includes('all good')) {
+          accumulators.boundary_expression.deltas.push(-1);
+          accumulators.conflict_engagement.deltas.push(-1);
+          accumulators.boundary_expression.receipts.push({
+            id: `rcpt_${String(receiptCounter++).padStart(3, '0')}`,
+            turnNumber: turn.turnNumber,
+            quote: turn.text,
+            dimension: 'boundary_expression',
+            observation: 'Chose casual accommodation to diffuse tension'
           });
         }
       }
@@ -137,22 +148,36 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
     const n = acc.deltas.length;
     allReceipts.push(...acc.receipts);
 
-    if (n < 2) {
-      const partialScore = n === 1 ? Math.min(90, Math.max(20, Math.round(50 + (acc.deltas[0] * 12)))) : null;
-      const summary = n === 1
-        ? `Emerging signal (1 of 2 observations recorded): Early choices lean towards this stance, but play 1 more scenario touching this dimension to confirm.`
-        : `Not observed in this scenario (0 of 2 observations): The choices in this encounter did not test this dimension. Play 2 more scenarios to unlock.`;
-
+    if (n === 0) {
       scoresRecord[dim] = {
         dimension: dim,
         label: dimensionMeta[dim].label,
         score: null,
         status: 'insufficient_evidence',
-        summary,
+        summary: `Not observed in this scenario (0 of 2 observations). The dialogue paths chosen did not test this dimension. Play 2 more scenarios to unlock.`,
+        evidenceIds: [],
+        observationsCount: 0,
+        scenariosNeededToUnlock: 2,
+        partialScore: null
+      };
+      continue;
+    }
+
+    const netSum = acc.deltas.reduce((a, b) => a + b, 0);
+    const rawScore = 50 + (netSum * 11);
+    const clampedScore = Math.min(95, Math.max(15, rawScore));
+
+    if (n === 1) {
+      scoresRecord[dim] = {
+        dimension: dim,
+        label: dimensionMeta[dim].label,
+        score: clampedScore,
+        status: 'insufficient_evidence',
+        summary: `Emerging signal (1 of 2 observations recorded): Early choices lean towards ~${clampedScore}/100. Play 1 more scenario touching this dimension to confirm calibration.`,
         evidenceIds: acc.receipts.map(r => r.id),
-        observationsCount: n,
-        scenariosNeededToUnlock: 2 - n,
-        partialScore
+        observationsCount: 1,
+        scenariosNeededToUnlock: 1,
+        partialScore: clampedScore
       };
       continue;
     }
@@ -161,13 +186,13 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
     const hasNeg = acc.deltas.some(d => d < 0);
     const spread = Math.max(...acc.deltas) - Math.min(...acc.deltas);
 
-    if (hasPos && hasNeg && spread >= 2) {
+    if (hasPos && hasNeg && spread >= 2 && Math.abs(netSum) <= 1) {
       scoresRecord[dim] = {
         dimension: dim,
         label: dimensionMeta[dim].label,
-        score: null,
+        score: 50,
         status: 'context_dependent',
-        summary: 'Context-dependent: Your responses shifted significantly between turns, adapting to the counterpart\'s cues.',
+        summary: 'Context-dependent: Your responses shifted significantly between turns, adapting between firmness and conciliation.',
         evidenceIds: acc.receipts.map(r => r.id),
         observationsCount: n,
         scenariosNeededToUnlock: 0,
@@ -176,15 +201,10 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
       continue;
     }
 
-    const sum = acc.deltas.reduce((a, b) => a + b, 0);
-    const base = 50;
-    const rawScore = base + (sum * 12);
-    const clampedScore = Math.min(95, Math.max(15, rawScore));
-
     let summaryText = dimensionMeta[dim].midDesc;
-    if (clampedScore > 65) {
+    if (clampedScore >= 65) {
       summaryText = dimensionMeta[dim].highDesc;
-    } else if (clampedScore < 35) {
+    } else if (clampedScore <= 35) {
       summaryText = dimensionMeta[dim].lowDesc;
     }
 
@@ -208,36 +228,56 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
 }
 
 /**
- * Generate contextual dynamic followup choices for all scenarios.
+ * Generate rich contextual followup choices (4-5 options per turn) across all 5 turns.
  */
 export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumber: number): ChoiceOption[] {
+  const t = Math.min(turnNumber, 4);
+
   if (scenario.id === 'unexpected-message') {
     return [
       {
-        id: `opt_turn_${turnNumber}_coffee`,
-        label: 'Suggest in-person catch up',
-        text: 'Good to hear from you. Let us grab a quick coffee this weekend and catch up properly.',
+        id: `opt_maya_t${t}_honest_closure`,
+        label: 'Seek Direct Closure',
+        text: 'I appreciate the apology, Maya, but what actually happened back then? You vanished into thin air for 8 months.',
         impacts: [
-          { dimension: 'directness', delta: 2, reason: 'Initiated direct in-person reconnection' },
+          { dimension: 'boundary_expression', delta: 2, reason: 'Demanded honest closure before moving forward' },
+          { dimension: 'directness', delta: 2, reason: 'Addressed past ghosting head-on' }
+        ]
+      },
+      {
+        id: `opt_maya_t${t}_coffee_plan`,
+        label: 'Propose In-Person Catch Up',
+        text: 'Texts are terrible for deep debriefs. Let us grab a quiet coffee this weekend and catch up properly.',
+        impacts: [
+          { dimension: 'directness', delta: 1, reason: 'Initiated direct in-person reconnection' },
           { dimension: 'conflict_engagement', delta: 1, reason: 'Proactively stepped into reconnection' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_ask_closure`,
-        label: 'Ask for closure on the silence',
-        text: 'I appreciate the apology, but what actually happened back then? You kind of vanished into thin air.',
+        id: `opt_maya_t${t}_gentle_empathy`,
+        label: 'Empathetic Reassurance',
+        text: 'Life gets heavy sometimes, I get it. I am just really glad you are okay and felt safe reaching out.',
         impacts: [
-          { dimension: 'boundary_expression', delta: 2, reason: 'Addressed past rupture before moving on' },
-          { dimension: 'directness', delta: 2, reason: 'Demanded honest clarity' }
+          { dimension: 'perspective_taking', delta: 2, reason: 'Provided emotional safety and non-judgmental acceptance' },
+          { dimension: 'conflict_engagement', delta: -1, reason: 'Focused on warmth over past accountability' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_keep_virtual`,
-        label: 'Keep it light & distant',
-        text: 'Haha totally. Well keep me posted on how your projects turn out!',
+        id: `opt_maya_t${t}_keep_casual`,
+        label: 'Keep Low-Investment Distance',
+        text: 'Haha totally. Well keep me posted on how your art projects turn out! Take care.',
         impacts: [
-          { dimension: 'boundary_expression', delta: 1, reason: 'Maintained low-investment distance' },
-          { dimension: 'conflict_engagement', delta: -1, reason: 'Chose casual distance over deeper repair' }
+          { dimension: 'boundary_expression', delta: 2, reason: 'Maintained polite but low-investment emotional distance' },
+          { dimension: 'directness', delta: 1, reason: 'Gently closed the door without drama' }
+        ]
+      },
+      {
+        id: `opt_maya_t${t}_playful_challenge`,
+        label: 'Playful Loyalty Test',
+        text: 'Only under one condition: if we reconnect, no vanishing acts until at least 2028. Deal?',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 1, reason: 'Set playful boundary terms for the future' },
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Lighthearted accountability' }
         ]
       }
     ];
@@ -246,21 +286,48 @@ export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumb
   if (scenario.id === 'forgotten-plan') {
     return [
       {
-        id: `opt_turn_${turnNumber}_firm_check`,
-        label: 'Set mutual accountability',
-        text: 'Let us only put something on the calendar when your sprint is actually wrapped up so neither of us has to scramble.',
+        id: `opt_jordan_t${t}_hold_accountable`,
+        label: 'Establish Firm Accountability',
+        text: 'Jordan, I need you to understand that constantly overpromising and bailing drains trust. I want to see you, but only when you can actually protect the time.',
         impacts: [
-          { dimension: 'boundary_expression', delta: 2, reason: 'Set structural limit on future scheduling' },
-          { dimension: 'directness', delta: 1, reason: 'Addressed structural cause of cancellations' }
+          { dimension: 'boundary_expression', delta: 2, reason: 'Held firm line on relationship reliability' },
+          { dimension: 'directness', delta: 2, reason: 'Named the erosion of trust plainly' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_check_stress`,
-        label: 'Ask about the escalation',
-        text: 'Sounds brutal with that client. Are you doing okay under all that fire?',
+        id: `opt_jordan_t${t}_support_burnout`,
+        label: 'Offer Burnout Support',
+        text: 'Honestly you sound completely drowned. Eat something and get through the crisis tonight. We will regroup Sunday when you can breathe.',
         impacts: [
-          { dimension: 'perspective_taking', delta: 2, reason: 'Prioritized colleague well-being' },
-          { dimension: 'conflict_engagement', delta: -1, reason: 'Chose compassion over addressing friction' }
+          { dimension: 'perspective_taking', delta: 2, reason: 'Supported friend\'s acute distress' },
+          { dimension: 'conflict_engagement', delta: -1, reason: 'Postponed discussion to relieve pressure' }
+        ]
+      },
+      {
+        id: `opt_jordan_t${t}_calendar_rule`,
+        label: 'Require Tangible Commitment',
+        text: 'Next time we make plans, put it as a tentative hold on your calendar so your clients do not steamroll it.',
+        impacts: [
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Proposed concrete systemic solution' },
+          { dimension: 'boundary_expression', delta: 1, reason: 'Asserted practical expectations' }
+        ]
+      },
+      {
+        id: `opt_jordan_t${t}_dinner_solo`,
+        label: 'Go Solo Unfazed',
+        text: 'All good. I am already dressed so I am taking myself out to that ramen bar anyway! Good luck with the deck.',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 2, reason: 'Demonstrated emotional self-sufficiency' },
+          { dimension: 'directness', delta: 1, reason: 'Unfazed independence' }
+        ]
+      },
+      {
+        id: `opt_jordan_t${t}_pause_plans`,
+        label: 'Pause Future Plans',
+        text: 'Let us take a break from planning dinner until your client crunch passes. Reach out when your schedule stabilizes.',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 2, reason: 'Protected bandwidth by freezing open-ended cancellations' },
+          { dimension: 'directness', delta: 2, reason: 'Clear boundary action' }
         ]
       }
     ];
@@ -269,21 +336,48 @@ export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumb
   if (scenario.id === 'group-chat-dilemma') {
     return [
       {
-        id: `opt_turn_${turnNumber}_poll_vote`,
-        label: 'Drop formal emoji poll',
-        text: 'Dropping a formal poll: React 🌲 for cabin trip, ❌ for pass. If we have 4 by 6pm, I will lock in the dates!',
+        id: `opt_leo_t${t}_lock_in`,
+        label: 'Force Binary Decision',
+        text: 'Alright team, reservation link expires in 2 hours. If you are in, send your $50 deposit right now. Otherwise I am releasing the cabin.',
         impacts: [
-          { dimension: 'directness', delta: 2, reason: 'Implemented organized decision mechanism' },
-          { dimension: 'conflict_engagement', delta: 1, reason: 'Moved group from passivity to action' }
+          { dimension: 'directness', delta: 2, reason: 'Forced actionable resolution with high stakes' },
+          { dimension: 'boundary_expression', delta: 2, reason: 'Refused to carry emotional labor of chasing adults' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_dm_leo`,
-        label: 'DM Leo privately',
-        text: 'DMing Leo: "Hey, do you actually want to do this cabin trip or is everyone too busy?"',
+        id: `opt_leo_t${t}_delegate_leo`,
+        label: 'Pass the Baton to Leo',
+        text: 'Since Leo broke the silence with a dog meme, Leo is now officially Head of Trip Logistics. Ball is in your court, Leo!',
         impacts: [
-          { dimension: 'perspective_taking', delta: 1, reason: 'Calibrated mood in private 1-on-1' },
-          { dimension: 'directness', delta: 1, reason: 'Asked for private read on the room' }
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Playfully transferred responsibility' },
+          { dimension: 'perspective_taking', delta: 1, reason: 'Engaged friend\'s humor productively' }
+        ]
+      },
+      {
+        id: `opt_leo_t${t}_check_mood`,
+        label: 'Check Group Energy',
+        text: 'Is everyone secretly feeling too busy for a trip right now? Be honest, no judgment if we should push to next month.',
+        impacts: [
+          { dimension: 'perspective_taking', delta: 2, reason: 'Gave group permission to voice silent reservations' },
+          { dimension: 'directness', delta: 1, reason: 'Brought unspoken feelings to the surface' }
+        ]
+      },
+      {
+        id: `opt_leo_t${t}_laugh_along`,
+        label: 'Join the Meme Train',
+        text: 'Hahaha that dog is literally running on 2% battery. Okay fine, group trips are a logistical nightmare, let us just get drinks Friday.',
+        impacts: [
+          { dimension: 'conflict_engagement', delta: -2, reason: 'Surrendered logistical initiative to match casual tone' },
+          { dimension: 'boundary_expression', delta: -1, reason: 'Folded own plan to keep group light' }
+        ]
+      },
+      {
+        id: `opt_leo_t${t}_private_core`,
+        label: 'Book with the Core Crew',
+        text: 'Hey Leo, DM me. If it is just you, me, and Maya, we can downsize the cabin and book right now.',
+        impacts: [
+          { dimension: 'directness', delta: 2, reason: 'Decisive pragmatic move around passive bystanders' },
+          { dimension: 'boundary_expression', delta: 1, reason: 'Filtered for committed participants' }
         ]
       }
     ];
@@ -292,21 +386,48 @@ export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumb
   if (scenario.id === 'boundary-joke') {
     return [
       {
-        id: `opt_turn_${turnNumber}_firm_limit`,
-        label: 'Lock in boundary',
-        text: 'Thanks Marcus. Appreciate you saying that. Let us keep it moving.',
+        id: `opt_marcus_t${t}_clear_line`,
+        label: 'Uncompromising Respect Line',
+        text: 'Marcus, funny banter punches up. Punching down on someone\'s livelihood isn\'t wit, it is insecurity. We are done joking about this.',
         impacts: [
-          { dimension: 'boundary_expression', delta: 1, reason: 'Maintained firm boundary without lingering grudge' },
-          { dimension: 'conflict_engagement', delta: 1, reason: 'De-escalated cleanly once boundary was accepted' }
+          { dimension: 'boundary_expression', delta: 2, reason: 'Uncompromisingly asserted self-respect' },
+          { dimension: 'directness', delta: 2, reason: 'Exposed defense mechanism plainly' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_reset_vibe`,
-        label: 'Lighthearted reset',
-        text: 'Fair enough. Just make sure the next drink has an umbrella in it.',
+        id: `opt_marcus_t${t}_private_unpack`,
+        label: 'Private Reality Check',
+        text: 'Look, you are a fun guy, but you have this habit of taking cheap shots when people are around. What is that about?',
         impacts: [
-          { dimension: 'conflict_engagement', delta: -1, reason: 'Restored social levity' },
-          { dimension: 'boundary_expression', delta: 1, reason: 'Accepted resolution with humor' }
+          { dimension: 'perspective_taking', delta: 2, reason: 'Inquired into counterpart\'s social competition habit' },
+          { dimension: 'conflict_engagement', delta: 2, reason: 'Confronted behavioral pattern constructively' }
+        ]
+      },
+      {
+        id: `opt_marcus_t${t}_reset_dinner`,
+        label: 'Graceful Table Reset',
+        text: 'Apology accepted. Let us change the topic and enjoy the rest of dinner without turning each other into targets.',
+        impacts: [
+          { dimension: 'conflict_engagement', delta: 1, reason: 'De-escalated and restored group equilibrium' },
+          { dimension: 'boundary_expression', delta: 1, reason: 'Closed the incident with poise' }
+        ]
+      },
+      {
+        id: `opt_marcus_t${t}_witty_counter_point`,
+        label: 'Playful Warning Shot',
+        text: 'Just remember Marcus, I know enough embarrassing stories from college to write a three-volume biography. Tread lightly.',
+        impacts: [
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Signaled deterrence through humor' },
+          { dimension: 'boundary_expression', delta: 1, reason: 'Warned counterpart off with banter' }
+        ]
+      },
+      {
+        id: `opt_marcus_t${t}_leave_table`,
+        label: 'Vote with Your Feet',
+        text: 'I am actually going to head out. Thanks for the dinner everyone, catch you guys another time.',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 2, reason: 'Refused to stay in an uncomfortable social environment' },
+          { dimension: 'directness', delta: 2, reason: 'Decisive physical boundary' }
         ]
       }
     ];
@@ -315,74 +436,105 @@ export function getDynamicFollowupChoices(scenario: ScenarioDefinition, turnNumb
   if (scenario.id === 'credit-taken') {
     return [
       {
-        id: `opt_turn_${turnNumber}_confirm_notes`,
-        label: 'Confirm email co-authorship',
-        text: 'Sounds good Elena. I will draft the bullet points for our joint recap email and send it over for review.',
+        id: `opt_elena_t${t}_joint_email`,
+        label: 'Mandate Joint Recap Email',
+        text: 'Elena, to keep visibility aligned with leadership, I will draft the joint recap email outlining my benchmark scripts and send it from both of us.',
         impacts: [
-          { dimension: 'boundary_expression', delta: 2, reason: 'Enforced formal documentation of credit' },
-          { dimension: 'directness', delta: 2, reason: 'Took immediate structural action' }
+          { dimension: 'boundary_expression', delta: 2, reason: 'Secured structural credit protection through written trail' },
+          { dimension: 'directness', delta: 2, reason: 'Left zero room for individual credit appropriation' }
         ]
       },
       {
-        id: `opt_turn_${turnNumber}_align_partnership`,
-        label: 'Establish team norm',
-        text: 'Going forward, let us make sure we explicitly divide presentation slides before calls so ownership is seamless.',
+        id: `opt_elena_t${t}_strategic_partnership`,
+        label: 'Frame as Mutual Strength',
+        text: 'We are a lethal team when our partnership is clean. We do not need to elbow each other for director visibility—there is plenty of credit for both of us.',
         impacts: [
-          { dimension: 'perspective_taking', delta: 1, reason: 'Collaboratively designed future process' },
-          { dimension: 'conflict_engagement', delta: 1, reason: 'Constructive systemic resolution' }
+          { dimension: 'perspective_taking', delta: 2, reason: 'Framed situation as abundant mutual alliance' },
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Constructive collaborative de-escalation' }
+        ]
+      },
+      {
+        id: `opt_elena_t${t}_direct_warning`,
+        label: 'Plain Professional Warning',
+        text: 'If my work is presented as solo effort again, I will correct it live on the call next time instead of waiting for a 1-on-1.',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 2, reason: 'Established severe consequences for repeated violation' },
+          { dimension: 'directness', delta: 2, reason: 'Clear unambiguous professional line' }
+        ]
+      },
+      {
+        id: `opt_elena_t${t}_curious_motive`,
+        label: 'Inquire Into Pressure',
+        text: 'Are you feeling under intense pressure for the quarterly review? Help me understand why you felt the need to claim the benchmarks alone.',
+        impacts: [
+          { dimension: 'perspective_taking', delta: 2, reason: 'Inquired into counterpart\'s career anxieties' },
+          { dimension: 'directness', delta: 1, reason: 'Direct yet psychologically curious' }
+        ]
+      },
+      {
+        id: `opt_elena_t${t}_separate_projects`,
+        label: 'Propose Divided Scope',
+        text: 'For the next sprint, let us take completely separate workstreams so attribution is clean and painless for both of us.',
+        impacts: [
+          { dimension: 'boundary_expression', delta: 2, reason: 'Divided territory to eliminate conflict' },
+          { dimension: 'conflict_engagement', delta: 1, reason: 'Pragmatic structural detachment' }
         ]
       }
     ];
   }
 
-  if (scenario.id === 'cafe-spark') {
-    return [
-      {
-        id: `opt_turn_${turnNumber}_coffee_invite`,
-        label: 'Invite to share table',
-        text: 'Well, since we are both reading enthusiasts, mind if I join you for a coffee?',
-        impacts: [
-          { dimension: 'directness', delta: 2, reason: 'Clear romantic and conversational interest' },
-          { dimension: 'conflict_engagement', delta: 1, reason: 'Bold step forward' }
-        ]
-      },
-      {
-        id: `opt_turn_${turnNumber}_discuss_author`,
-        label: 'Deep dive into book',
-        text: 'Tell me your favorite passage so far—I want to see if we highlighted the same chapter.',
-        impacts: [
-          { dimension: 'perspective_taking', delta: 2, reason: 'Focused on their literary perspective' },
-          { dimension: 'directness', delta: 1, reason: 'Warm intellectual connection' }
-        ]
-      }
-    ];
-  }
-
-  // Gallery compliment & default
+  // Flirt Lab defaults (cafe-spark & gallery-compliment)
   return [
     {
-      id: `opt_turn_${turnNumber}_explore_canvas`,
-      label: 'Explore art perspective',
-      text: 'To me, that brush stroke feels like structured chaos. What does it remind you of?',
+      id: `opt_flirt_t${t}_bold_interest`,
+      label: 'Bold Expressive Chemistry',
+      text: 'I came in here for a quiet coffee, but talking to you just made this rainy afternoon ten times more interesting.',
       impacts: [
-        { dimension: 'perspective_taking', delta: 2, reason: 'Invited their emotional perception' },
-        { dimension: 'directness', delta: 1, reason: 'Engaged with genuine curiosity' }
+        { dimension: 'directness', delta: 2, reason: 'Directly and courageously signaled authentic romantic chemistry' },
+        { dimension: 'conflict_engagement', delta: 1, reason: 'Embraced vulnerable social exposure' }
       ]
     },
     {
-      id: `opt_turn_${turnNumber}_exchange_names`,
-      label: 'Warm introduction',
-      text: 'I am [User], by the way. What brought you to the opening tonight?',
+      id: `opt_flirt_t${t}_intellectual_inquiry`,
+      label: 'Deep Passion Inquiry',
+      text: 'Tell me the one passage or detail that completely changed the way you view the world. I want the real answer.',
       impacts: [
-        { dimension: 'directness', delta: 2, reason: 'Direct introduction' },
-        { dimension: 'boundary_expression', delta: 1, reason: 'Opened conversational connection' }
+        { dimension: 'perspective_taking', delta: 2, reason: 'Invited substantive personal vulnerability and worldview' },
+        { dimension: 'directness', delta: 1, reason: 'Warm intellectual depth' }
+      ]
+    },
+    {
+      id: `opt_flirt_t${t}_playful_banter`,
+      label: 'Playful Banter Sparring',
+      text: 'Careful now, you are making dangerous claims. If you are wrong about that ending, you are buying the croissants.',
+      impacts: [
+        { dimension: 'directness', delta: 1, reason: 'Flirtatious playful teasing' },
+        { dimension: 'conflict_engagement', delta: 1, reason: 'Dynamic back-and-forth tension' }
+      ]
+    },
+    {
+      id: `opt_flirt_t${t}_gentle_boundary`,
+      label: 'Warm Grounded Pace',
+      text: 'I really enjoyed this spontaneous moment with you. Let me give you my number so we can continue this over proper drinks.',
+      impacts: [
+        { dimension: 'boundary_expression', delta: 1, reason: 'Controlled the pacing of the interaction gracefully' },
+        { dimension: 'directness', delta: 2, reason: 'Clear decisive invitation' }
+      ]
+    },
+    {
+      id: `opt_flirt_t${t}_respectful_bow`,
+      label: 'Graceful Respectful Exit',
+      text: 'Thank you for the wonderful conversation! I will let you get back to your reading now before I ruin the next chapter.',
+      impacts: [
+        { dimension: 'boundary_expression', delta: 2, reason: 'Honored personal boundaries and situational respect' },
+        { dimension: 'perspective_taking', delta: 1, reason: 'Attuned to counterpart\'s space' }
       ]
     }
   ];
 }
 
 /**
- * Generate in-character replies for all 7 scenarios across all turns.
+ * Generate deep, multi-sentence in-character dialogue reacting dynamically to user choices.
  */
 export function simulateTurn(payload: TurnRequest): TurnResponse {
   const scenario = SCENARIOS.find(s => s.id === payload.scenarioId) || SCENARIOS[0];
@@ -391,115 +543,116 @@ export function simulateTurn(payload: TurnRequest): TurnResponse {
   const canContinue = userTurnCount < scenario.maxTurns;
   const text = payload.userMessage.toLowerCase();
 
-  let reply = 'I appreciate you sharing that with me. It gives me a lot to consider.';
+  let reply = 'I hear what you are saying, and I appreciate you laying it out so clearly for me.';
   let characterMood = scenario.character.quirks?.initialMood || 'neutral';
-  let characterMoodDescription = scenario.character.quirks?.initialMoodDesc || 'Assessing the conversational temperature';
+  let characterMoodDescription = scenario.character.quirks?.initialMoodDesc || 'Assessing conversational temperature';
 
   if (scenario.id === 'unexpected-message') {
     if (!canContinue) {
-      reply = 'I completely respect that! Let us definitely grab that coffee when things slow down for you. Really glad we talked tonight!';
+      reply = 'I am really glad we had this conversation tonight. It was scary reaching out after vanishing, but you were so real with me. Let us grab that coffee when you are free—no pressure, on your terms.';
       characterMood = 'warm';
-      characterMoodDescription = 'Relieved, grateful for the open door and mutual warmth';
-    } else if (text.includes('bermuda') || text.includes('😂')) {
-      reply = 'Haha fair call! I deserve that. Work swallowed me whole and then I felt super awkward reaching out after so long. But I really missed your energy!';
+      characterMoodDescription = 'Deeply relieved, grateful for mutual emotional honesty';
+    } else if (text.includes('bermuda') || text.includes('😂') || text.includes('resurface')) {
+      reply = 'Haha fair call! I deserve that roast completely. Work swallowed me whole and then the longer I waited, the more awkward I felt reaching out. But I really missed your energy and had to break the silence.';
       characterMood = 'amused';
-      characterMoodDescription = 'Amused and disarmed by your playful tease; tension evaporated';
-    } else if (text.includes('eight months') || text.includes('why') || text.includes('prompted')) {
-      reply = 'Oof, you are completely right to ask. I felt terrible about dropping off. I had a rough job transition, but I wanted to apologize and reconnect genuinely.';
+      characterMoodDescription = 'Amused and disarmed by your playful tease; awkward tension dissolved';
+    } else if (text.includes('eight months') || text.includes('prompted') || text.includes('silence')) {
+      reply = 'Oof, seeing "eight months" typed out hits like a truck. You are completely right to call it out. I had a brutal transition leaving my design studio and crawled into a shell, but it wasn\'t fair to leave you hanging. I wanted to apologize properly.';
       characterMood = 'hesitant';
-      characterMoodDescription = 'Contrite and cautious, taking responsibility for the silence';
-    } else {
-      reply = 'I know it was completely out of the blue, but I am really glad you replied. Life has been a whirlwind lately.';
+      characterMoodDescription = 'Contrite, taking full accountability for the ghosting';
+    } else if (text.includes('hurt') || text.includes('cautious') || text.includes('boundary')) {
+      reply = 'I completely understand why you would be guarded. Vanishing like that was selfish, and I do not expect you to just pretend it did not happen. If you need space or want to take things slow, I fully respect that.';
+      characterMood = 'guarded';
+      characterMoodDescription = 'Humbled and respectful, honoring your declared boundary';
+    } else if (text.includes('closure') || text.includes('actually happened')) {
+      reply = 'Honestly? I had a major panic attack in October, dropped client contracts, and felt like such a failure that I couldn\'t face anyone who knew me as "the thriving creative". It was pure shame. You deserved an explanation back then.';
       characterMood = 'warm';
-      characterMoodDescription = 'Gently optimistic, glad you answered the late-night text';
+      characterMoodDescription = 'Vulnerable, opening up about hidden burnout and shame';
+    } else {
+      reply = 'I know it was totally out of the blue, but your reply made my week. Life has been a whirlwind lately, but hearing your voice grounds me.';
+      characterMood = 'warm';
+      characterMoodDescription = 'Relieved, glad the door was not slammed shut';
     }
   } else if (scenario.id === 'forgotten-plan') {
     if (!canContinue) {
-      reply = 'You are 100% right. I am putting a calendar block right now so work cannot touch it next week. Thank you for keeping it real with me.';
+      reply = 'You gave me the reality check I desperately needed. I am putting a hard block on my calendar for next week and turning off Slack notifications. Thank you for holding me accountable instead of just letting it rot.';
       characterMood = 'relieved';
-      characterMoodDescription = 'Accountable and appreciative of clear mutual boundaries';
+      characterMoodDescription = 'Genuinely accountable, thankful for clear boundaries';
     } else if (text.includes('third time') || text.includes('disposable') || text.includes('pattern')) {
-      reply = 'Ugh... seeing that written down hits hard. You are completely right. It is not fair to you, and I am genuinely sorry for taking your time for granted.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Stung by the mirror, realizing the real impact of cancellations';
-    } else if (text.includes('disappointed') || text.includes('clear heads')) {
-      reply = 'I understand, and you have every right to be disappointed. Take all the time you need, and I will be here whenever you want to talk.';
+      reply = 'Seeing "third time" and "disposable" written out makes me feel sick to my stomach. You are 100% right. My lack of boundaries at work is leaking into my friendships, and it is completely unfair to treat your evening like a backup plan. I am so sorry.';
       characterMood = 'hesitant';
-      characterMoodDescription = 'Humbled and giving you space, respecting your emotional boundary';
-    } else {
-      reply = 'Thanks for bearing with me. I feel awful about the scramble, but I promise I will make it up to you.';
+      characterMoodDescription = 'Stung by the mirror, realizing the real interpersonal cost of workaholism';
+    } else if (text.includes('disappointed') || text.includes('clear heads') || text.includes('space')) {
+      reply = 'I respect that completely. You have every right to be angry and take space. Go enjoy your evening, and whenever you are ready to talk next week, I will be here. I promise to listen.';
+      characterMood = 'guarded';
+      characterMoodDescription = 'Subdued and giving you space, respecting your emotional perimeter';
+    } else if (text.includes('solo') || text.includes('myself out') || text.includes('dressed')) {
+      reply = 'Haha damn, now I am double jealous! You go crush that ramen. But seriously, thank you for not letting me ruin your entire evening. I will make this up to you.';
       characterMood = 'relieved';
-      characterMoodDescription = 'Relieved by your patience, eager to make amends';
-    }
-  } else if (scenario.id === 'group-chat-dilemma') {
-    if (!canContinue) {
-      reply = '[Leo]: Cabin trip is locked in! 🌲 Everyone just chimed in after the poll. Good call on corralling this chaotic group!';
-      characterMood = 'amused';
-      characterMoodDescription = 'Hype level 100: excited that the group actually organized';
-    } else if (text.includes('cabin') || text.includes('dust') || text.includes('solo')) {
-      reply = '[Leo]: Hahaha oops! My bad, brain was completely fried by this dog video. Yes! I am 1000% in for the cabin. Who else is confirmed?';
-      characterMood = 'amused';
-      characterMoodDescription = 'Snapping out of meme-scroll trance, fully rallying for the trip';
+      characterMoodDescription = 'Impressed by your independence, eager to redeem reputation';
     } else {
-      reply = '[Leo]: Thumbs up from me! Just needed to check my schedule. Let us make this happen!';
-      characterMood = 'warm';
-      characterMoodDescription = 'Cooperative and on board with the plan';
+      reply = 'I feel awful about this scramble. My VP dropped a fire drill at 5:15 PM and I did not know how to say no. I need to get better at managing this.';
+      characterMood = 'annoyed';
+      characterMoodDescription = 'Frustrated with work demands, striving to keep your friendship';
     }
   } else if (scenario.id === 'boundary-joke') {
     if (!canContinue) {
-      reply = 'Yeah, you are right. That was out of line and I respect you calling me out on it. Next round is on me, no jokes.';
+      reply = 'Hey, I really respect the way you handled that. A lot of people would have either blown up or secretly hated me for months. You told me straight to my face where the line was. Lesson learned, I promise.';
       characterMood = 'warm';
-      characterMoodDescription = 'Ego deflated, genuine mutual respect earned';
-    } else if (text.includes('not cool') || text.includes('rough chapter') || text.includes('do not do that')) {
-      reply = 'Man... honestly, hearing you say that makes me realize it was a cheap shot. My bad, seriously. I will tone it down immediately.';
-      characterMood = 'guarded';
-      characterMoodDescription = 'Surprised by direct pushback; recalibrating boundaries rapidly';
-    } else {
-      reply = 'Hey, I really did not mean to strike a sensitive nerve. Let us drop that topic and enjoy the night together.';
+      characterMoodDescription = 'Chastened, respecting your poise and boundary';
+    } else if (text.includes('livelihood') || text.includes('crossed a line') || text.includes('not cool')) {
+      reply = 'Whoa... you are right. When you put it like that, it sounds terrible. I was trying to get a cheap laugh from the table and did not stop to think how it felt from your shoes. That was stupid of me, I am genuinely sorry.';
       characterMood = 'hesitant';
-      characterMoodDescription = 'Stepping back, de-escalating the room tension';
+      characterMoodDescription = 'Deflated, realizing the joke was cruel rather than clever';
+    } else if (text.includes('outside') || text.includes('privately') || text.includes('audience')) {
+      reply = 'Yeah, let us step out. [Marcus steps into the hallway, hands in pockets] Look, I got caught up trying to be the loud entertainer at the table. I didn\'t mean to undermine you.';
+      characterMood = 'guarded';
+      characterMoodDescription = 'Relieved to be away from the crowd, ready to listen without posturing';
+    } else if (text.includes('spreadsheet') || text.includes('junior desk') || text.includes('retaliation')) {
+      reply = 'Ouch! Alright, fair shot! I walked right into that one. Touché. But seriously, truce? I know when I have crossed the line.';
+      characterMood = 'amused';
+      characterMoodDescription = 'Taking the hit gracefully, recognizing they got out-sparred';
+    } else {
+      reply = 'Point taken. I will dial it down. Let us get another round and reset.';
+      characterMood = 'relieved';
+      characterMoodDescription = 'Accepting the correction, seeking to de-escalate';
     }
   } else if (scenario.id === 'credit-taken') {
     if (!canContinue) {
-      reply = 'Agreed. I just sent the revised recap email crediting your benchmark architecture prominently. Thanks for handling this with professionalism.';
-      characterMood = 'relieved';
-      characterMoodDescription = 'Partnership preserved with formal credit restored';
-    } else if (text.includes('benchmark') || text.includes('co-credited') || text.includes('initiative')) {
-      reply = 'You are completely right. In the moment I got caught up in the Q&A rush, but your benchmarks were the backbone of the deck. I will make sure the written recap gives you full lead credit.';
+      reply = 'Understood. The joint recap email is going out with both our names prominently credited on the benchmarks. Moving forward, we will review attribution slides together. Thank you for addressing this directly with me.';
+      characterMood = 'warm';
+      characterMoodDescription = 'Professional respect established; partnership saved from resentment';
+    } else if (text.includes('individual initiative') || text.includes('weekend') || text.includes('co-credited')) {
+      reply = 'I hear you, and you are right—those benchmarks were your work. On the call I was trying to keep the executive narrative concise and said "I" instead of "we". It was an oversight, but I can see how it looked like I was taking credit. Let us fix it in the recap notes.';
+      characterMood = 'hesitant';
+      characterMoodDescription = 'Conceding the factual point, protecting professional reputation';
+    } else if (text.includes('separate') || text.includes('warning') || text.includes('live on the call')) {
+      reply = 'I would strongly prefer we do not escalate this in front of leadership. I am telling you right now that it was an inadvertent slip of the tongue. I am happy to CC you and highlight your contributions.';
       characterMood = 'guarded';
-      characterMoodDescription = 'Defensive instinct neutralized by your factual, measured stance';
+      characterMoodDescription = 'Defensive, feeling the heat of potential public exposure';
     } else {
-      reply = 'Thanks for bringing that up directly. I value our partnership and definitely want to ensure our individual contributions are clear.';
-      characterMood = 'neutral';
-      characterMoodDescription = 'Diplomatic corporate alignment restored';
+      reply = 'I appreciate you bringing this to me 1-on-1 rather than letting it turn into silent resentment. Let us align on tomorrow\'s recap.';
+      characterMood = 'relieved';
+      characterMoodDescription = 'Glad the conflict was contained professionally';
     }
-  } else if (scenario.id === 'cafe-spark') {
+  } else {
+    // Flirt Lab and others
     if (!canContinue) {
-      reply = 'Haha deal! Well, I am definitely glad you said something. Let us compare notes when I finish the final chapter!';
+      reply = 'It is so rare to meet someone who can banter like that without putting up a false front. Let us definitely finish this conversation over dinner sometime soon.';
+      characterMood = 'warm';
+      characterMoodDescription = 'Enamored and impressed by your conversational authenticity';
+    } else if (text.includes('ten times more interesting') || text.includes('chemistry') || text.includes('espresso')) {
+      reply = '[Laughs warmly, tucking hair behind ear] Bold move! I respect someone who doesn\'t hide behind generic small talk. Sit down—the espresso is on me if your defense of chapter 12 actually holds up.';
       characterMood = 'amused';
-      characterMoodDescription = 'Delighted by the literary spark; lingering warm connection';
-    } else if (text.includes('chapter 12') || text.includes('plot twist')) {
-      reply = 'Wait, do not say another word! Chapter 12?! Now my heart rate is up. Okay, you have to sit here and tell me with zero spoilers.';
-      characterMood = 'amused';
-      characterMoodDescription = 'Genuinely charmed and hooked by the shared book intrigue';
+      characterMoodDescription = 'Delighted by your direct flirtation and confidence';
+    } else if (text.includes('world') || text.includes('brushwork') || text.includes('passion')) {
+      reply = 'You actually care about what is under the surface, don\'t you? That is refreshing. Look at that corner right there—it represents the exact moment when order collapses into freedom.';
+      characterMood = 'warm';
+      characterMoodDescription = 'Intellectually captivated, sharing genuine vulnerability';
     } else {
-      reply = 'Haha thank you. It is rare to meet someone who actually knows this translation. I am Sam, by the way.';
+      reply = 'You have a very disarming way of speaking. Tell me more about what brought you here tonight.';
       characterMood = 'warm';
-      characterMoodDescription = 'Warmly grounded, appreciating authentic introduction';
-    }
-  } else if (scenario.id === 'gallery-compliment') {
-    if (!canContinue) {
-      reply = 'It was wonderful talking to you. It is refreshing to meet someone who looks at art with both their intellect and their heart.';
-      characterMood = 'warm';
-      characterMoodDescription = 'Deeply appreciative of authentic connection amidst the crowd';
-    } else if (text.includes('cultured') || text.includes('interesting')) {
-      reply = '[Chloe laughs softly] Well, the mission was a success then. I am Chloe. Tell me what drew you to this piece specifically.';
-      characterMood = 'amused';
-      characterMoodDescription = 'Playfully intrigued by your confident wit';
-    } else {
-      reply = 'I appreciate people who take the time to really look rather than just glance. What feeling does this color palette give you?';
-      characterMood = 'warm';
-      characterMoodDescription = 'Engaged, inviting artistic exploration';
+      characterMoodDescription = 'Curious and engaged in reciprocal social rapport';
     }
   }
 
@@ -515,40 +668,88 @@ export function simulateTurn(payload: TurnRequest): TurnResponse {
 }
 
 /**
- * Generate post-game synthesis reflection and evidence receipts.
+ * Generate post-game synthesis reflection, evidence receipts, and bespoke archetype debrief.
  */
 export function simulateReport(payload: ReportRequest): ReportResponse {
   const scenario = SCENARIOS.find(s => s.id === payload.scenarioId) || SCENARIOS[0];
   const scoringResult = computeScores({ scenarioId: payload.scenarioId, history: payload.history });
 
+  const directness = scoringResult.scores.directness?.score ?? 50;
+  const boundary = scoringResult.scores.boundary_expression?.score ?? 50;
+  const conflict = scoringResult.scores.conflict_engagement?.score ?? 50;
+  const perspective = scoringResult.scores.perspective_taking?.score ?? 50;
+
+  // Extract user choices from transcript to build bespoke, personalized receipts
+  const userTurns = payload.history.filter(t => t.speaker === 'user');
+  const userQuotes = userTurns.map(t => t.text);
+  const primaryQuote = userQuotes[0] || 'I hear what you are saying';
+  const secondaryQuote = userQuotes[1] || userQuotes[0] || '';
+
+  // Determine user's dynamic behavioral archetype
+  let archetype = 'The Calibrated Tactician';
+  let archetypeTagline = 'Balancing clarity, boundaries, and social attunement';
+  let vibeSnapshot = '';
+  let howItLanded = '';
+
+  if (boundary >= 68 && directness >= 65) {
+    archetype = 'The Unflinching Truth-Teller';
+    archetypeTagline = 'Uncompromising self-respect and razor-sharp clarity';
+    vibeSnapshot = `In your confrontation with ${scenario.character.name}, you operated as The Unflinching Truth-Teller. When presented with ${scenario.tagline.toLowerCase()}, you refused to hide behind polite ambiguity or social cushions. By choosing to declare "${primaryQuote}", you set an immediate standard of self-respect, establishing that your time and boundaries are non-negotiable.`;
+    howItLanded = `"${scenario.character.name}: 'Honestly? You caught me completely off-guard when you said "${primaryQuote}". I was expecting you to let it slide or make a polite excuse, but you held a mirror right up to me. I respected that.'"`
+  } else if (perspective >= 65 && conflict <= 45) {
+    archetype = 'The Harmonious De-Escalator';
+    archetypeTagline = 'Prioritizing emotional safety, warmth, and relational continuity';
+    vibeSnapshot = `During your interaction with ${scenario.character.name}, you operated as The Harmonious De-Escalator. You consistently prioritized psychological safety and mutual understanding over proving a point. When you responded with "${primaryQuote}", you gave the other person room to save face, defusing acute tension before exploring what actually happened.`;
+    howItLanded = `"${scenario.character.name}: 'When you responded with "${primaryQuote}", all the anxiety in my chest just melted away. You didn\'t attack me or put me on trial—you gave me permission to be human.'"`
+  } else if (directness >= 65 && conflict >= 60) {
+    archetype = 'The Proactive Catalyst';
+    archetypeTagline = 'Leaning directly into unresolved friction to forge resolution';
+    vibeSnapshot = `In your dialogue with ${scenario.character.name}, you operated as The Proactive Catalyst. You treated tension not as an awkward threat to be swept under the rug, but as a problem to solve in real time. Your choice to declare "${primaryQuote}" challenged the status quo, forcing mutual accountability and cutting through hours of passive avoidance.`;
+    howItLanded = `"${scenario.character.name}: 'You definitely don\'t beat around the bush! Hearing "${primaryQuote}" stung for a second, but it forced us to stop tip-toeing around the elephant in the room.'"`
+  } else if (perspective >= 65 && directness >= 60) {
+    archetype = 'The Empathetic Anchor';
+    archetypeTagline = 'Grounded inquiry paired with honest, supportive presence';
+    vibeSnapshot = `Throughout your encounter with ${scenario.character.name}, you operated as The Empathetic Anchor. You displayed the rare ability to be simultaneously radically clear and deeply curious. By asking "${primaryQuote}", you validated the underlying stress driving the situation while maintaining your own grounded posture.`;
+    howItLanded = `"${scenario.character.name}: 'You have a really grounded way of talking. When you said "${primaryQuote}", I felt seen rather than interrogated. That is rare.'"`
+  } else if (boundary <= 38 && conflict <= 38) {
+    archetype = 'The Accommodating Peacekeeper';
+    archetypeTagline = 'Minimizing friction to preserve interpersonal comfort';
+    vibeSnapshot = `In your exchange with ${scenario.character.name}, you operated as The Accommodating Peacekeeper. When faced with ${scenario.tagline.toLowerCase()}, your instinctive reaction was to absorb the friction and reassure the other person with "${primaryQuote}". While this preserves immediate harmony, it often comes at the silent cost of your own unspoken boundaries.`;
+    howItLanded = `"${scenario.character.name}: 'You were so generous when you said "${primaryQuote}". Part of me felt relieved, but another part wondered if you were secretly annoyed and just being too nice to say so.'"`
+  } else {
+    archetype = 'The Calibrated Tactician';
+    archetypeTagline = 'Adaptive, situational, balancing multiple social currents';
+    vibeSnapshot = `In your interaction with ${scenario.character.name}, you operated as The Calibrated Tactician. You avoided extreme dogmatism—choosing "${primaryQuote}" to gauge the temperature of the room before committing to a rigid stance. You modulate between directness and cushioning depending on the other person's cues.`;
+    howItLanded = `"${scenario.character.name}: 'You were really thoughtful. When you said "${primaryQuote}", it felt measured and mature—like someone who reads the room before making their move.'"`
+  }
+
+  // Dynamic Observed Patterns tailored to user's transcript
+  const observedPatterns = [
+    directness >= 60
+      ? `Front-loaded clarity: You established your posture early (e.g. Turn 1: "${primaryQuote.slice(0, 50)}...") rather than relying on indirect hinting.`
+      : `Relational cushioning: You smoothed over conversational friction with conversational buffers before stating your position.`,
+    boundary >= 60
+      ? `Explicit limit setting: You clearly signaled where your bandwidth or patience ended, making your expectations predictable.`
+      : `High relational accommodation: You adapted generously to the counterpart\'s pace and stress, prioritizing their comfort.`,
+    secondaryQuote
+      ? `Dynamic calibration: In later turns, you followed up with "${secondaryQuote.slice(0, 55)}...", demonstrating responsiveness to their emotional shift.`
+      : `Single-stance consistency: You held a steady emotional tone throughout the dialogue.`
+  ];
+
+  // Dynamic Alternative Approaches
+  const alternativeApproaches = [
+    directness >= 65
+      ? `Test pairing direct statements with an open curiosity inquiry (e.g. "Here is my view, but what is driving this on your end?") to lower counterpart defense.`
+      : `Experiment with stating the hard boundary 10% earlier in the exchange instead of giving multiple exploratory cushions.`,
+    conflict >= 60
+      ? `Try taking a temporary emotional pause before addressing acute friction to let the other person decompress.`
+      : `Practice leaning into the friction in real time rather than deferring the resolution to future dates.`
+  ];
+
   const whatWeCannotKnow = [
     `How you communicate under chronic fatigue or high financial stakes in the real world.`,
     `Long-term relational patterns built over years of deep trust versus a rapid conversational moment.`,
-    `Your unspoken internal boundaries that were held internally without being spoken into the chat.`
-  ];
-
-  const directnessScore = scoringResult.scores.directness?.score ?? 50;
-  const boundaryScore = scoringResult.scores.boundary_expression?.score ?? 50;
-
-  let vibeSnapshot = `In your interaction with ${scenario.character.name}, you demonstrated a balanced conversational posture, blending clarity with mutual social attunement.`;
-  if (directnessScore > 65) {
-    vibeSnapshot = `In your interaction with ${scenario.character.name}, you demonstrated high communicative courage—naming timelines, expectations, and reality plainly rather than hiding behind ambiguity.`;
-  } else if (boundaryScore > 65) {
-    vibeSnapshot = `In your interaction with ${scenario.character.name}, you exhibited grounded self-advocacy, protecting personal bandwidth and expectations without unnecessary hostility.`;
-  }
-
-  const observedPatterns = [
-    directnessScore > 60
-      ? 'Clear, unambiguous framing: You tended to address central issues head-on rather than relying on subtle hints.'
-      : 'Harmonious framing: You prioritized relational warmth and conversational ease before pressing difficult topics.',
-    boundaryScore > 60
-      ? 'Explicit boundary articulation: You signaled healthy limits regarding respect, time, and mutual expectations.'
-      : 'Flexible accommodation: You adjusted comfortably to the counterpart\'s pace and context.'
-  ];
-
-  const alternativeApproaches = [
-    'Test with a clarifying question before taking a definitive stance to invite greater counterpart vulnerability.',
-    'Experiment with playful humor to de-escalate tension while maintaining firm underlying boundaries.'
+    `Your unspoken internal thoughts that were felt internally without being sent into the dialogue.`
   ];
 
   return {
@@ -561,6 +762,9 @@ export function simulateReport(payload: ReportRequest): ReportResponse {
     alternativeApproaches,
     receipts: scoringResult.receipts,
     whatWeCannotKnow,
-    mockMode: true
+    mockMode: true,
+    archetype,
+    archetypeTagline,
+    howItLanded
   };
 }

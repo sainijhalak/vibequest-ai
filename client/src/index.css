@@ -7,6 +7,47 @@
     color-scheme: dark;
   }
 
+  /* Scenario Theme Tokens */
+  [data-theme="midnight_group_chat"] {
+    --theme-canvas: #070D18;
+    --theme-surface: #0E1726;
+    --theme-elevated: #172338;
+    --theme-accent: #38BDF8;
+    --theme-border: #1E293B;
+  }
+
+  [data-theme="fluorescent_hallway"] {
+    --theme-canvas: #101216;
+    --theme-surface: #171B22;
+    --theme-elevated: #212631;
+    --theme-accent: #F97316;
+    --theme-border: #374151;
+  }
+
+  [data-theme="cafe_golden_hour"] {
+    --theme-canvas: #15100B;
+    --theme-surface: #201811;
+    --theme-elevated: #2C2017;
+    --theme-accent: #E5A93B;
+    --theme-border: #3E2F22;
+  }
+
+  [data-theme="rain_window"] {
+    --theme-canvas: #091117;
+    --theme-surface: #111C24;
+    --theme-elevated: #1A2733;
+    --theme-accent: #2DD4BF;
+    --theme-border: #1F3342;
+  }
+
+  [data-theme="art_mixer"] {
+    --theme-canvas: #0A0A0D;
+    --theme-surface: #141418;
+    --theme-elevated: #1E1E24;
+    --theme-accent: #F43F5E;
+    --theme-border: #2E2E38;
+  }
+
   body {
     @apply bg-ink-950 text-paper-50 font-sans antialiased;
     background-image: radial-gradient(rgba(47, 54, 75, 0.25) 1px, transparent 1px);
