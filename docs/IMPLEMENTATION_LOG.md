@@ -106,5 +106,18 @@ Duration    6.23s
 - **Tested**:
   - `npm test`: 14/14 tests passing (+1 new test verifying character emotional mood and description).
   - `npm run build`: Monorepo built cleanly across `shared`, `server`, and `client`.
-- **Status**: Implemented ✅ | Tested ✅ | Ready for Commit & Deploy
+- **Status**: Implemented ✅ | Tested ✅
+
+### Milestone 2: Game Feel & Tactile Micro-Interactions
+- **Implemented**:
+  - **Tactile Choice Cards (`ChoiceCard.tsx`)**: Added `active:scale-[0.98]` press depth, `hover:scale-[1.012]` elevation, left indicator coral bar, subtle ambient glow, and integrated haptic/sound hooks.
+  - **Physical Message Easing (`ChatBubble.tsx` & `index.css`)**: Implemented `animate-message-enter` with cubic-bezier spring physics (`(0.16, 1, 0.3, 1)`).
+  - **Variable-Length Typing Indicator**: Paced dots, dynamic cadence labels ("RAPID DRAFTING...", "DELIBERATING CAREFULLY..."), and rhythmic bounce duration tied to character speed quirks.
+  - **Cinematic Episode Title Card (`EpisodeTitleCard.tsx`)**: High-contrast episodic briefing card presenting episode code, premise stakes, character dossier temperament preview, and Space/Enter quick launch.
+  - **Zero-Dependency Sound Synthesizer (`soundFx.ts`)**: Pure Web Audio API tone synthesis (tap, message sent, message received marimba chime, scene opening chord). Off by default per specifications with a clear header toggle (`[SOUND: OFF/ON]`).
+  - **Mobile Haptics via Vibration API**: Tactile vibration pulses on taps and message deliveries, strictly guarded against `prefers-reduced-motion`.
+- **Tested**:
+  - `npm test`: 14/14 tests passing.
+  - `npm run build`: All workspaces built cleanly with zero TypeScript errors.
+- **Status**: Implemented ✅ | Tested ✅
 

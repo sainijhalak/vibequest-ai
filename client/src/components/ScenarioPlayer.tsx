@@ -8,11 +8,13 @@ import {
   CharacterMood
 } from '@vibequest/shared';
 import { ApiService } from '../services/api.js';
+import { soundFx } from '../services/soundFx.js';
 import { CharacterAvatar } from './ui/CharacterAvatar.js';
 import { ChatBubble, TypingIndicator } from './ui/ChatBubble.js';
 import { ChoiceCard } from './ui/ChoiceCard.js';
 import { ProgressBar } from './ui/ProgressBar.js';
 import { Button } from './ui/Button.js';
+import { EpisodeTitleCard } from './ui/EpisodeTitleCard.js';
 
 interface ScenarioPlayerProps {
   scenario: ScenarioDefinition;
@@ -25,6 +27,8 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   onExit,
   onCompleted
 }) => {
+  const [showEpisodeIntro, setShowEpisodeIntro] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(soundFx.isEnabled());
   const [history, setHistory] = useState<Turn[]>([
     {
       turnNumber: 0,
@@ -51,14 +55,25 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
 
   // Auto-scroll to bottom of conversation
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history, isLoading]);
+    if (!showEpisodeIntro) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [history, isLoading, showEpisodeIntro]);
 
   const userTurnsCount = history.filter(t => t.speaker === 'user').length;
+
+  const handleToggleSound = () => {
+    const next = !soundEnabled;
+    soundFx.setEnabled(next);
+    setSoundEnabled(next);
+  };
 
   const handleSelectChoice = async (choice: ChoiceOption) => {
     if (isLoading || isFinished) return;
     setError(null);
+
+    soundFx.playMessageSent();
+    soundFx.triggerHaptic(14);
 
     const nextTurnNum = userTurnsCount + 1;
     const userTurn: Turn = {
@@ -97,6 +112,9 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
       setHistory(prev => [...prev, characterTurn]);
       setCurrentChoices(response.nextChoices);
 
+      soundFx.playMessageReceived();
+      soundFx.triggerHaptic(18);
+
       if (response.characterMood) {
         setCharacterMood(response.characterMood);
       }
@@ -106,6 +124,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
 
       if (!response.canContinue || nextTurnNum >= scenario.maxTurns) {
         setIsFinished(true);
+        soundFx.triggerHaptic([20, 40, 20]);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to receive character reply.');
@@ -118,6 +137,9 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
     e.preventDefault();
     if (!customText.trim() || isLoading || isFinished) return;
     setError(null);
+
+    soundFx.playMessageSent();
+    soundFx.triggerHaptic(14);
 
     const nextTurnNum = userTurnsCount + 1;
     const text = customText.trim();
@@ -158,6 +180,9 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
       setHistory(prev => [...prev, characterTurn]);
       setCurrentChoices(response.nextChoices);
 
+      soundFx.playMessageReceived();
+      soundFx.triggerHaptic(18);
+
       if (response.characterMood) {
         setCharacterMood(response.characterMood);
       }
@@ -167,6 +192,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
 
       if (!response.canContinue || nextTurnNum >= scenario.maxTurns) {
         setIsFinished(true);
+        soundFx.triggerHaptic([20, 40, 20]);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to receive character reply.');
@@ -210,23 +236,86 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
     }
   };
 
+  // If in episode title card stage, show cinematic briefing screen
+  if (showEpisodeIntro) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-ink-800">
+          <button
+            onClick={onExit}
+            type="button"
+            className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors"
+          >
+            ← BACK TO SCENARIOS
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            className={`font-mono text-xs px-3 py-1.5 rounded-lg border transition-all flex items-center gap-2 ${
+              soundEnabled
+                ? 'bg-ink-850 border-coral/60 text-coral'
+                : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+            }`}
+            title="Toggle subtle audio effects (off by default)"
+          >
+            <span>{soundEnabled ? '🔊' : '🔇'}</span>
+            <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+
+        <EpisodeTitleCard
+          scenario={scenario}
+          onStart={() => setShowEpisodeIntro(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Top Header & Turn Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink-700/80">
-        <button
-          onClick={onExit}
-          type="button"
-          className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors self-start"
-        >
-          ← EXIT SCENARIO
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onExit}
+            type="button"
+            className="font-mono text-xs text-paper-400 hover:text-paper-100 flex items-center gap-1.5 transition-colors self-start"
+          >
+            ← EXIT SCENARIO
+          </button>
 
-        <ProgressBar
-          currentTurn={userTurnsCount}
-          maxTurns={scenario.maxTurns}
-          className="sm:w-64"
-        />
+          <button
+            type="button"
+            onClick={() => setShowEpisodeIntro(true)}
+            className="font-mono text-[11px] text-paper-400 hover:text-paper-200 underline transition-colors"
+            title="Review episode briefing"
+          >
+            [BRIEFING]
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            className={`font-mono text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
+              soundEnabled
+                ? 'bg-ink-850 border-coral/60 text-coral'
+                : 'bg-ink-900 border-ink-700 text-paper-400 hover:text-paper-200'
+            }`}
+            title="Toggle subtle audio effects (off by default)"
+          >
+            <span>{soundEnabled ? '🔊' : '🔇'}</span>
+            <span>SOUND: {soundEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+
+          <ProgressBar
+            currentTurn={userTurnsCount}
+            maxTurns={scenario.maxTurns}
+            className="sm:w-56"
+          />
+        </div>
       </div>
 
       {/* Character Dossier Banner & Mood Meter */}
@@ -299,7 +388,10 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
         ))}
 
         {isLoading && (
-          <TypingIndicator characterName={scenario.character.name} />
+          <TypingIndicator
+            characterName={scenario.character.name}
+            typingSpeedMs={scenario.character.quirks?.typingSpeedMs}
+          />
         )}
 
         <div ref={messagesEndRef} />
@@ -358,7 +450,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
           </div>
 
           {!isCustomMode ? (
-            /* 4-5 Choice Cards Grid */
+            /* 4-5 Tactile Choice Cards Grid */
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {currentChoices.map((choice, idx) => (
                 <ChoiceCard
