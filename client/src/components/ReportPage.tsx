@@ -36,12 +36,19 @@ export const ReportPage: React.FC<ReportPageProps> = ({
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, obsCount?: number) => {
     switch (status) {
       case 'insufficient_evidence':
+        if (obsCount === 1) {
+          return (
+            <span className="font-mono text-[10px] text-amber px-2 py-0.5 rounded bg-amber-tint border border-amber/40">
+              [EMERGING SIGNAL • 1/2 CLUES FOUND]
+            </span>
+          );
+        }
         return (
           <span className="font-mono text-[10px] text-paper-400 px-2 py-0.5 rounded bg-ink-800 border border-ink-700">
-            [INSUFFICIENT EVIDENCE YET]
+            [NOT TESTED IN THIS ENCOUNTER • 0/2]
           </span>
         );
       case 'context_dependent':
@@ -54,7 +61,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
       default:
         return (
           <span className="font-mono text-[10px] text-mint px-2 py-0.5 rounded bg-mint-tint border border-mint/30">
-            [OBSERVED TENDENCY]
+            [CALIBRATED TENDENCY]
           </span>
         );
     }
@@ -107,7 +114,9 @@ export const ReportPage: React.FC<ReportPageProps> = ({
               leftLabel: 'Low',
               rightLabel: 'High'
             };
-            const score = data.score !== null ? data.score : 50;
+            const hasCalibratedScore = data.score !== null;
+            const hasPartialClue = data.status === 'insufficient_evidence' && data.observationsCount === 1 && data.partialScore !== null;
+            const displayScore = hasCalibratedScore ? data.score : (hasPartialClue ? data.partialScore : null);
 
             return (
               <div
@@ -119,11 +128,15 @@ export const ReportPage: React.FC<ReportPageProps> = ({
                     <h3 className="font-display font-bold text-sm sm:text-base text-paper-50">
                       {meta.title}
                     </h3>
-                    {getStatusBadge(data.status)}
+                    {getStatusBadge(data.status, data.observationsCount)}
                   </div>
 
                   <span className="font-mono text-xs text-paper-300">
-                    {data.score !== null ? `${data.score} / 100` : '—'}
+                    {hasCalibratedScore
+                      ? `${data.score} / 100`
+                      : hasPartialClue
+                      ? `~${data.partialScore} (early clue)`
+                      : 'Unobserved'}
                   </span>
                 </div>
 
@@ -133,11 +146,19 @@ export const ReportPage: React.FC<ReportPageProps> = ({
                     {/* Neutral Midline Marker */}
                     <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-ink-700 z-10" />
 
-                    {/* Active Score Bar */}
-                    {data.score !== null && (
+                    {/* Calibrated Score Bar */}
+                    {hasCalibratedScore && (
                       <div
                         className="h-full bg-coral transition-all duration-500"
-                        style={{ width: `${score}%` }}
+                        style={{ width: `${displayScore}%` }}
+                      />
+                    )}
+
+                    {/* Partial Signal Bar (Hatched / Amber) */}
+                    {hasPartialClue && (
+                      <div
+                        className="h-full bg-amber/70 border-r-2 border-r-amber transition-all duration-500"
+                        style={{ width: `${displayScore}%` }}
                       />
                     )}
                   </div>
@@ -151,6 +172,13 @@ export const ReportPage: React.FC<ReportPageProps> = ({
                 <p className="text-xs text-paper-300 font-sans leading-relaxed pt-1">
                   {data.summary}
                 </p>
+
+                {data.scenariosNeededToUnlock > 0 && (
+                  <div className="font-mono text-[10px] text-paper-400 flex items-center gap-1.5 pt-0.5">
+                    <span className="text-coral">UNLOCK:</span>
+                    <span>Complete {data.scenariosNeededToUnlock} more scenario{data.scenariosNeededToUnlock > 1 ? 's' : ''} with tension in this area to calibrate fully.</span>
+                  </div>
+                )}
               </div>
             );
           })}

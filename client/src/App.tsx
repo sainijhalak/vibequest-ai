@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   ScenarioDefinition,
   ReportResponse,
+  ReportResponseSchema,
   HealthResponse,
   SCENARIOS
 } from '@vibequest/shared';
@@ -10,12 +11,42 @@ import { LandingPage } from './components/LandingPage.js';
 import { ScenarioPlayer } from './components/ScenarioPlayer.js';
 import { ReportPage } from './components/ReportPage.js';
 
+const STORAGE_VIEW_KEY = 'vibequest_session_view';
+const STORAGE_REPORT_KEY = 'vibequest_session_report';
+const STORAGE_SCENARIO_ID_KEY = 'vibequest_session_scenario_id';
+
 export const App: React.FC = () => {
   const [view, setView] = useState<'landing' | 'player' | 'report'>('landing');
   const [scenarios, setScenarios] = useState<ScenarioDefinition[]>(SCENARIOS);
   const [activeScenario, setActiveScenario] = useState<ScenarioDefinition | null>(null);
   const [activeReport, setActiveReport] = useState<ReportResponse | null>(null);
   const [mockMode, setMockMode] = useState<boolean>(true);
+
+  // Restore session from sessionStorage on mount (prevents losing state on page refresh)
+  useEffect(() => {
+    try {
+      const savedReportJson = sessionStorage.getItem(STORAGE_REPORT_KEY);
+      const savedView = sessionStorage.getItem(STORAGE_VIEW_KEY);
+      const savedScenarioId = sessionStorage.getItem(STORAGE_SCENARIO_ID_KEY);
+
+      if (savedScenarioId) {
+        const found = SCENARIOS.find(s => s.id === savedScenarioId);
+        if (found) setActiveScenario(found);
+      }
+
+      if (savedReportJson) {
+        const parsedReport = ReportResponseSchema.safeParse(JSON.parse(savedReportJson));
+        if (parsedReport.success) {
+          setActiveReport(parsedReport.data);
+          if (savedView === 'report') {
+            setView('report');
+          }
+        }
+      }
+    } catch {
+      // Ignore storage parse issues
+    }
+  }, []);
 
   useEffect(() => {
     // Attempt to load live health & scenarios from API
@@ -41,16 +72,32 @@ export const App: React.FC = () => {
   const handleSelectScenario = (scenario: ScenarioDefinition) => {
     setActiveScenario(scenario);
     setView('player');
+    try {
+      sessionStorage.setItem(STORAGE_VIEW_KEY, 'player');
+      sessionStorage.setItem(STORAGE_SCENARIO_ID_KEY, scenario.id);
+    } catch {
+      // ignore
+    }
   };
 
   const handleCompleted = (report: ReportResponse) => {
     setActiveReport(report);
     setView('report');
+    try {
+      sessionStorage.setItem(STORAGE_VIEW_KEY, 'report');
+      sessionStorage.setItem(STORAGE_REPORT_KEY, JSON.stringify(report));
+    } catch {
+      // ignore
+    }
   };
 
   const handleClearData = () => {
     localStorage.clear();
-    alert('All local data, state, and cached transcripts cleared.');
+    sessionStorage.clear();
+    setActiveReport(null);
+    setActiveScenario(null);
+    setView('landing');
+    alert('All local data, session state, and cached transcripts cleared.');
   };
 
   return (
@@ -68,7 +115,10 @@ export const App: React.FC = () => {
         {view === 'player' && activeScenario && (
           <ScenarioPlayer
             scenario={activeScenario}
-            onExit={() => setView('landing')}
+            onExit={() => {
+              sessionStorage.setItem(STORAGE_VIEW_KEY, 'landing');
+              setView('landing');
+            }}
             onCompleted={handleCompleted}
           />
         )}
@@ -76,8 +126,14 @@ export const App: React.FC = () => {
         {view === 'report' && activeReport && (
           <ReportPage
             report={activeReport}
-            onReplay={() => setView('player')}
-            onExploreMore={() => setView('landing')}
+            onReplay={() => {
+              sessionStorage.setItem(STORAGE_VIEW_KEY, 'player');
+              setView('player');
+            }}
+            onExploreMore={() => {
+              sessionStorage.setItem(STORAGE_VIEW_KEY, 'landing');
+              setView('landing');
+            }}
           />
         )}
       </main>

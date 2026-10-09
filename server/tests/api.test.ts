@@ -140,5 +140,63 @@ describe('VibeQuest AI API Integration Tests', () => {
     expect(res.body.data.characterMoodDescription).toBeDefined();
     expect(typeof res.body.data.characterMoodDescription).toBe('string');
   });
+
+  it('POST /api/score returns deterministic score vector and evidence receipts directly', async () => {
+    const res = await request(app)
+      .post('/api/score')
+      .send({
+        scenarioId: 'unexpected-message',
+        history: [
+          {
+            turnNumber: 1,
+            speaker: 'user',
+            text: 'Hey Maya. It has been eight months. What prompted the sudden check-in tonight?',
+            choiceId: 'opt_direct_inquiry',
+            timestamp: new Date().toISOString()
+          }
+        ]
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.scenarioId).toBe('unexpected-message');
+    expect(res.body.data.scores.directness).toBeDefined();
+    expect(res.body.data.scores.directness.status).toBe('insufficient_evidence');
+    expect(res.body.data.scores.directness.observationsCount).toBe(1);
+    expect(res.body.data.scores.directness.scenariosNeededToUnlock).toBe(1);
+    expect(res.body.data.receipts.length).toBeGreaterThan(0);
+  });
+
+  it('POST /api/score returns 404 for unknown scenario', async () => {
+    const res = await request(app)
+      .post('/api/score')
+      .send({
+        scenarioId: 'unknown-scenario-xyz',
+        history: [
+          {
+            turnNumber: 1,
+            speaker: 'user',
+            text: 'Testing',
+            timestamp: new Date().toISOString()
+          }
+        ]
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('SCENARIO_NOT_FOUND');
+  });
+
+  it('POST /api/score returns 400 validation error when history is empty', async () => {
+    const res = await request(app)
+      .post('/api/score')
+      .send({
+        scenarioId: 'unexpected-message',
+        history: []
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
 });
+
 

@@ -3,7 +3,7 @@ import { computeScores } from '../src/engines/scoringEngine.js';
 import { Turn } from '@vibequest/shared';
 
 describe('Pure Deterministic Scoring Engine', () => {
-  it('returns insufficient_evidence when fewer than 2 data points exist for a dimension', () => {
+  it('returns insufficient_evidence with honest partial score and unlock count when only 1 data point exists', () => {
     // Only 1 turn touching directness
     const history: Turn[] = [
       {
@@ -20,10 +20,19 @@ describe('Pure Deterministic Scoring Engine', () => {
       history
     });
 
-    // directness had only 1 delta -> insufficient_evidence
+    // directness had only 1 delta -> insufficient_evidence with emerging clue
     expect(result.scores.directness.status).toBe('insufficient_evidence');
     expect(result.scores.directness.score).toBeNull();
-    expect(result.scores.directness.summary).toContain('Not enough evidence yet');
+    expect(result.scores.directness.observationsCount).toBe(1);
+    expect(result.scores.directness.scenariosNeededToUnlock).toBe(1);
+    expect(result.scores.directness.partialScore).toBeTypeOf('number');
+    expect(result.scores.directness.summary).toContain('Emerging signal (1 of 2 observations recorded)');
+
+    // perspective_taking had 0 deltas -> unobserved with 2 needed to unlock
+    expect(result.scores.perspective_taking.observationsCount).toBe(0);
+    expect(result.scores.perspective_taking.scenariosNeededToUnlock).toBe(2);
+    expect(result.scores.perspective_taking.partialScore).toBeNull();
+    expect(result.scores.perspective_taking.summary).toContain('Not observed in this scenario');
   });
 
   it('evaluates tendency when 2 or more data points confirm directness', () => {
@@ -51,6 +60,8 @@ describe('Pure Deterministic Scoring Engine', () => {
 
     expect(result.scores.directness.status).toBe('evaluated');
     expect(result.scores.directness.score).toBeGreaterThanOrEqual(65);
+    expect(result.scores.directness.observationsCount).toBeGreaterThanOrEqual(2);
+    expect(result.scores.directness.scenariosNeededToUnlock).toBe(0);
     expect(result.receipts.length).toBeGreaterThanOrEqual(2);
     expect(result.receipts[0].quote).toContain('eight months');
   });
@@ -82,6 +93,21 @@ describe('Pure Deterministic Scoring Engine', () => {
     expect(result.scores.boundary_expression.status).toBe('context_dependent');
     expect(result.scores.boundary_expression.score).toBe(50);
     expect(result.scores.boundary_expression.summary).toContain('Context-dependent');
+  });
+
+  it('handles empty run gracefully without crashing', () => {
+    const result = computeScores({
+      scenarioId: 'unexpected-message',
+      history: []
+    });
+
+    for (const scoreResult of Object.values(result.scores)) {
+      expect(scoreResult.status).toBe('insufficient_evidence');
+      expect(scoreResult.score).toBeNull();
+      expect(scoreResult.observationsCount).toBe(0);
+      expect(scoreResult.scenariosNeededToUnlock).toBe(2);
+    }
+    expect(result.receipts).toHaveLength(0);
   });
 
   it('analyzes custom text heuristics deterministically', () => {

@@ -87,7 +87,7 @@ Return a JSON object with:
 
           const response = await client.messages.create({
             model,
-            max_tokens: 700,
+            max_tokens: 1200,
             temperature: 0.3,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
@@ -95,8 +95,29 @@ Return a JSON object with:
 
           const first = response.content[0];
           if (first.type === 'text') {
-            const rawJson = first.text.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
-            const parsed = QualitativeReflectionPayloadSchema.parse(JSON.parse(rawJson));
+            const rawText = first.text.trim();
+            // Robustly match the first outermost JSON object in response
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+              throw new Error('No JSON object found in Claude reflection output');
+            }
+
+            let parsedJson: unknown;
+            try {
+              parsedJson = JSON.parse(jsonMatch[0]);
+            } catch (jsonErr: any) {
+              console.warn('[ReflectionEngine] JSON parse failed on AI reflection payload:', jsonErr?.message);
+              throw jsonErr;
+            }
+
+            const zodResult = QualitativeReflectionPayloadSchema.safeParse(parsedJson);
+            if (!zodResult.success) {
+              // Log the error shape explicitly (never logging raw conversation text)
+              console.warn('[ReflectionEngine] Zod validation error shape on reflection output:', JSON.stringify(zodResult.error.format()));
+              throw new Error('Reflection payload failed Zod schema validation');
+            }
+
+            const parsed = zodResult.data;
 
             return ReportResponseSchema.parse({
               scenarioId: scenario.id,
@@ -112,7 +133,7 @@ Return a JSON object with:
             });
           }
         } catch (err: any) {
-          console.warn(`[ReflectionEngine] Attempt ${attempt} failed:`, err?.message);
+          console.warn(`[ReflectionEngine] Attempt ${attempt} failed: ${err?.message}`);
         }
       }
     }

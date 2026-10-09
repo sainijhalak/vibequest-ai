@@ -138,13 +138,21 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
     allReceipts.push(...acc.receipts);
 
     if (n < 2) {
+      const partialScore = n === 1 ? Math.min(90, Math.max(20, Math.round(50 + (acc.deltas[0] * 12)))) : null;
+      const summary = n === 1
+        ? `Emerging signal (1 of 2 observations recorded): Early choices lean towards this stance, but play 1 more scenario touching this dimension to confirm.`
+        : `Not observed in this scenario (0 of 2 observations): The choices in this encounter did not test this dimension. Play 2 more scenarios to unlock.`;
+
       scoresRecord[dim] = {
         dimension: dim,
         label: dimensionMeta[dim].label,
         score: null,
         status: 'insufficient_evidence',
-        summary: `Insufficient evidence: Only ${n} data point observed for this dimension.`,
-        evidenceIds: acc.receipts.map(r => r.id)
+        summary,
+        evidenceIds: acc.receipts.map(r => r.id),
+        observationsCount: n,
+        scenariosNeededToUnlock: 2 - n,
+        partialScore
       };
       continue;
     }
@@ -160,7 +168,10 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
         score: null,
         status: 'context_dependent',
         summary: 'Context-dependent: Your responses shifted significantly between turns, adapting to the counterpart\'s cues.',
-        evidenceIds: acc.receipts.map(r => r.id)
+        evidenceIds: acc.receipts.map(r => r.id),
+        observationsCount: n,
+        scenariosNeededToUnlock: 0,
+        partialScore: null
       };
       continue;
     }
@@ -183,7 +194,10 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
       score: clampedScore,
       status: 'evaluated',
       summary: summaryText,
-      evidenceIds: acc.receipts.map(r => r.id)
+      evidenceIds: acc.receipts.map(r => r.id),
+      observationsCount: n,
+      scenariosNeededToUnlock: 0,
+      partialScore: null
     };
   }
 

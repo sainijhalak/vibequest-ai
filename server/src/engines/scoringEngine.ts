@@ -170,15 +170,23 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
     allReceipts.push(...acc.receipts);
     const count = acc.deltas.length;
 
-    // Rule: Fewer than 2 data points -> Insufficient evidence yet
+    // Rule: Fewer than 2 data points -> Insufficient evidence yet (with honest partial clue)
     if (count < 2) {
+      const partialScore = count === 1 ? Math.min(90, Math.max(20, Math.round(50 + (acc.deltas[0] * 12)))) : null;
+      const summary = count === 1
+        ? `Emerging signal (1 of 2 observations recorded): Early choices lean towards this stance, but play 1 more scenario touching this dimension to confirm.`
+        : `Not observed in this scenario (0 of 2 observations): The choices in this encounter did not test this dimension. Play 2 more scenarios to unlock.`;
+
       scores[dim] = {
         dimension: dim,
         label: dimensionMeta[dim],
         score: null,
         status: 'insufficient_evidence',
-        summary: 'Not enough evidence yet across this dimension. Complete further dialogue turns to observe patterns.',
-        evidenceIds: acc.receipts.map(r => r.id)
+        summary,
+        evidenceIds: acc.receipts.map(r => r.id),
+        observationsCount: count,
+        scenariosNeededToUnlock: 2 - count,
+        partialScore
       };
       continue;
     }
@@ -196,7 +204,10 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
         score: normalizedScore,
         status: 'context_dependent',
         summary: 'Context-dependent: You adjusted this behavior based on situational stakes rather than sticking to a single rigid mode.',
-        evidenceIds: acc.receipts.map(r => r.id)
+        evidenceIds: acc.receipts.map(r => r.id),
+        observationsCount: count,
+        scenariosNeededToUnlock: 0,
+        partialScore: null
       };
       continue;
     }
@@ -218,7 +229,10 @@ export function computeScores(runs: ScoringRun | ScoringRun[]): ScoringOutput {
       score: normalizedScore,
       status: 'evaluated',
       summary: tendencySummary,
-      evidenceIds: acc.receipts.map(r => r.id)
+      evidenceIds: acc.receipts.map(r => r.id),
+      observationsCount: count,
+      scenariosNeededToUnlock: 0,
+      partialScore: null
     };
   }
 

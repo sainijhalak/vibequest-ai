@@ -10,6 +10,8 @@ apiRouter.get('/health', ScenarioController.getHealth);
 apiRouter.get('/scenarios', ScenarioController.listScenarios);
 apiRouter.get('/scenarios/:id', ScenarioController.getScenario);
 
-// Gameplay & Reflection endpoints
+// Gameplay, Scoring & Reflection endpoints
 apiRouter.post('/scenario/turn', ScenarioController.handleTurn);
+apiRouter.post('/score', ScenarioController.handleScore);
 apiRouter.post('/report', ScenarioController.handleReport);
+

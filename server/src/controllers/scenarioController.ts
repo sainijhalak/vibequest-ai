@@ -7,6 +7,7 @@ import {
 import { SCENARIOS } from '../scenarios/data.js';
 import { CharacterEngine } from '../engines/characterEngine.js';
 import { ReflectionEngine } from '../engines/reflectionEngine.js';
+import { computeScores } from '../engines/scoringEngine.js';
 
 export class ScenarioController {
   public static getHealth(req: Request, res: Response): void {
@@ -137,4 +138,47 @@ export class ScenarioController {
       next(error);
     }
   }
+
+  public static async handleScore(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const parsed = ReportRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid scoring request payload',
+            details: parsed.error.format()
+          }
+        });
+        return;
+      }
+
+      const { scenarioId, history } = parsed.data;
+      const scenario = SCENARIOS.find(s => s.id === scenarioId);
+
+      if (!scenario) {
+        res.status(404).json({
+          error: {
+            code: 'SCENARIO_NOT_FOUND',
+            message: `Scenario '${scenarioId}' not found.`
+          }
+        });
+        return;
+      }
+
+      const scoringResult = computeScores({ scenarioId, history });
+
+      res.json({
+        success: true,
+        data: {
+          scenarioId,
+          scores: scoringResult.scores,
+          receipts: scoringResult.receipts
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+

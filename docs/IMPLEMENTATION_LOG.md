@@ -121,3 +121,41 @@ Duration    6.23s
   - `npm run build`: All workspaces built cleanly with zero TypeScript errors.
 - **Status**: Implemented ✅ | Tested ✅
 
+---
+
+## 🛠️ Step 0: Environment Check & Part A: Results Diagnosis and Fixes
+
+### Step 0: Environment Report
+- **Filesystem**: Local access to repository workspace (`/mnt/c/Users/saini/vibequest-ai`).
+- **Shell**: Linux WSL Bash environment with Node.js v24.21.0 and npm 11.19.0.
+- **Git & GitHub**: `/usr/bin/git` active with remote origin `https://github.com/sainijhalak/vibequest-ai.git`.
+- **Network**: HTTP requests operational (`curl`).
+- **Browser/Screenshot**: No headless Chromium/Playwright binary installed in WSL shell (using strict visual inspection checklists and code verification).
+- **Hosting Access**: Vercel CLI installed (`/home/saini/.nvm/versions/node/v24.21.0/bin/vercel`). Deployed app live at `https://client-nine-chi-53.vercel.app/`.
+- **Anthropic API Key**: Not set in shell environment; runs locally and on serverless in validated Mock AI mode (`MOCK_AI=true`). Not verified against live Claude API until live key provided.
+
+### Part A: Results Diagnosis (Evidence-Based)
+1. **Network Status Codes on Live Site**:
+   - `curl -i https://client-nine-chi-53.vercel.app/api/health` returned `HTTP 404 NOT_FOUND` because Vercel was configured with only static SPA output without a serverless bridge in `api/` or `vercel.json` rewrites.
+   - Client seamlessly caught the 404 and ran `@vibequest/shared` local simulation engine.
+2. **Missing `/api/score` Route**:
+   - `/api/score` was missing from `server/src/routes/api.ts` and `ScenarioController`. Added `POST /api/score` returning raw deterministic score vector and receipts.
+3. **Empty Results / Evidence Threshold Gap**:
+   - When a scenario only tests 1-2 dimensions, remaining dimensions had `n < 2` returning `score: null` and rendering empty `—` cards without explaining unlock requirements.
+   - **Fix**: Added `observationsCount`, `scenariosNeededToUnlock`, and `partialScore` (`emerging signal 1/2 clues found`) to both `scoringEngine.ts` and `simulation.ts`. On `ReportPage.tsx`, dimensions with 1 data point show an amber emerging signal track; dimensions with 0 data points explain which scenarios unlock them.
+4. **Token Truncation & Zod Validation in Reflection Engine**:
+   - Raised `max_tokens` from 700 to 1200 in `ReflectionEngine.ts`.
+   - Added regex JSON extraction (`/\{[\s\S]*\}/`) and explicit error shape logging (`zodResult.error.format()`) without logging sensitive conversation text.
+5. **Cold-Start & Timeout Resilience**:
+   - Added `evaluatingSeconds` counter in `ScenarioPlayer.tsx`. If evaluation takes > 3s, displays a friendly "Waking up server from idle sleep..." indicator.
+   - Added instant fallback button: "⚡ View Instant Scores & Receipts Now" calling deterministic simulation so player is never blocked.
+6. **Session State Persistence on Refresh**:
+   - Persisted `activeReport`, `activeScenarioId`, and `activeView` to `sessionStorage` in `App.tsx` so page refreshes on the report screen preserve results.
+7. **Vercel Serverless Function Bridge**:
+   - Added `api/index.js` exporting the Express server and added rewrite in `vercel.json` (`/api/(.*) -> /api/index.js`).
+- **Tested**:
+  - `npm test`: 18/18 tests passing (including new `/api/score` endpoint tests and partial evidence tests).
+  - `npm run build`: Monorepo compiled with 0 errors.
+- **Status**: Implemented ✅ | Tested ✅
+
+

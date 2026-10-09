@@ -93,7 +93,8 @@ export const ScenarioDefinitionSchema = z.object({
   character: CharacterMetaSchema,
   openingMessage: z.string().min(1),
   initialChoices: z.array(ChoiceOptionSchema).min(3),
-  maxTurns: z.number().int().min(2).max(6).default(3)
+  maxTurns: z.number().int().min(2).max(6).default(3),
+  themeId: z.string().optional()
 });
 export type ScenarioDefinition = z.infer<typeof ScenarioDefinitionSchema>;
 
@@ -157,9 +158,18 @@ export const DimensionScoreResultSchema = z.object({
   score: z.number().int().min(0).max(100).nullable(),
   status: DimensionScoreStatusSchema,
   summary: z.string(),
-  evidenceIds: z.array(z.string())
+  evidenceIds: z.array(z.string()),
+  observationsCount: z.number().int().nonnegative().optional(),
+  scenariosNeededToUnlock: z.number().int().nonnegative().optional(),
+  partialScore: z.number().int().min(0).max(100).nullable().optional()
 });
 export type DimensionScoreResult = z.infer<typeof DimensionScoreResultSchema>;
+
+export const ScoreResponseSchema = z.object({
+  scores: z.record(BehavioralDimensionSchema, DimensionScoreResultSchema),
+  receipts: z.array(EvidenceReceiptSchema)
+});
+export type ScoreResponse = z.infer<typeof ScoreResponseSchema>;
 
 export const ReportRequestSchema = z.object({
   scenarioId: z.string().min(1),

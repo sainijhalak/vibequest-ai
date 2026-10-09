@@ -5,7 +5,8 @@ import {
   ChoiceOption,
   TurnResponse,
   ReportResponse,
-  CharacterMood
+  CharacterMood,
+  simulateReport
 } from '@vibequest/shared';
 import { ApiService } from '../services/api.js';
 import { soundFx } from '../services/soundFx.js';
@@ -44,6 +45,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   const [customText, setCustomText] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isFinished, setIsFinished] = useState<boolean>(false);
+  const [evaluatingSeconds, setEvaluatingSeconds] = useState<number>(0);
   const [characterMood, setCharacterMood] = useState<CharacterMood>(
     scenario.character.quirks?.initialMood || 'neutral'
   );
@@ -52,6 +54,19 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
   );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Cold start timer for report generation
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isEvaluating) {
+      interval = setInterval(() => {
+        setEvaluatingSeconds(s => s + 1);
+      }, 1000);
+    } else {
+      setEvaluatingSeconds(0);
+    }
+    return () => clearInterval(interval);
+  }, [isEvaluating]);
 
   // Auto-scroll to bottom of conversation
   useEffect(() => {
@@ -211,8 +226,22 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
       });
       onCompleted(report);
     } catch (err: any) {
-      setError(err.message || 'Failed to synthesize reflection report.');
+      setError(err.message || 'Reflection synthesis is taking longer than expected. You can retry or view instant scores.');
       setIsEvaluating(false);
+    }
+  };
+
+  const handleInstantDeterministicScores = () => {
+    setIsEvaluating(false);
+    setError(null);
+    try {
+      const report = simulateReport({
+        scenarioId: scenario.id,
+        history
+      });
+      onCompleted(report);
+    } catch {
+      setError('Failed to compute instant scores.');
     }
   };
 
@@ -424,7 +453,7 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             We will calculate your deterministic scores across 4 behavioral dimensions and synthesize an evidence-backed debrief citing your exact choices.
           </p>
 
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col items-center gap-3">
             <Button
               variant="primary"
               size="lg"
@@ -434,6 +463,33 @@ export const ScenarioPlayer: React.FC<ScenarioPlayerProps> = ({
             >
               Reveal Your Reflection & Receipts →
             </Button>
+
+            {isEvaluating && evaluatingSeconds >= 3 && (
+              <div className="font-mono text-xs text-amber animate-pulse">
+                [SERVER STATUS]: Waking up server from idle sleep... ({evaluatingSeconds}s elapsed)
+              </div>
+            )}
+
+            {(error || evaluatingSeconds >= 5) && (
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateReport}
+                  disabled={isEvaluating}
+                >
+                  ↺ Retry Reflection Call
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleInstantDeterministicScores}
+                >
+                  ⚡ View Instant Scores & Receipts Now
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       ) : (

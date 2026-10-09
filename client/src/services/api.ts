@@ -5,12 +5,15 @@ import {
   ReportRequest,
   ReportResponse,
   ReportResponseSchema,
+  ScoreResponse,
+  ScoreResponseSchema,
   HealthResponse,
   HealthResponseSchema,
   ScenarioDefinition,
   SCENARIOS,
   simulateTurn,
-  simulateReport
+  simulateReport,
+  computeScores
 } from '@vibequest/shared';
 
 // Read API Base URL from Vite environment variables (fallback to '/api')
@@ -113,6 +116,35 @@ export class ApiService {
   }
 
   /**
+   * Request raw deterministic score vector and receipts directly
+   */
+  public static async getScore(payload: ReportRequest): Promise<ScoreResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/score`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(8000)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return ScoreResponseSchema.parse(data.data);
+      }
+    } catch (_) {
+      // offline or unreachable fallback
+    }
+
+    const localResult = computeScores({ scenarioId: payload.scenarioId, history: payload.history });
+    return {
+      scores: localResult.scores,
+      receipts: localResult.receipts
+    };
+  }
+
+  /**
    * Request post-game reflection report
    * With automatic client simulation fallback if backend returns 404 or is offline.
    */
@@ -140,3 +172,4 @@ export class ApiService {
     }
   }
 }
+
