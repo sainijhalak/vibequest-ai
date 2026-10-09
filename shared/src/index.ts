@@ -252,4 +252,5 @@ export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
 
 export * from './scenarios.js';
 export * from './simulation.js';
+export * from './roastEngine.js';
 

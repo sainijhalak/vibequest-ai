@@ -13,7 +13,8 @@ import {
   SCENARIOS,
   simulateTurn,
   simulateReport,
-  computeScores
+  computeScores,
+  generateVersatileRoast
 } from '@vibequest/shared';
 
 // Read API Base URL from Vite environment variables (fallback to '/api')
@@ -199,12 +200,7 @@ export class ApiService {
     } catch (_) {
       // Backend offline or timeout fallback
     }
-    return {
-      text: `"${payload.message.slice(0, 30)}..."? Did you bring that comeback from a 2012 Disney sitcom? Even my GPU didn't flinch!`,
-      damage: 45,
-      roastRating: 'DAMAGE: 65 HP • SOLID DIG',
-      mood: 'roasting'
-    };
+    return generateVersatileRoast(payload.message, payload.mode, payload.history);
   }
 }
 

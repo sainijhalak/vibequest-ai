@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Cartoon3DMascot } from './three/Cartoon3DMascot.js';
 import { soundFx } from '../services/soundFx.js';
 import { ApiService } from '../services/api.js';
+import { generateVersatileRoast } from '@vibequest/shared';
 
 interface Message {
   id: string;
@@ -38,12 +39,12 @@ export const RoastBattleBot: React.FC<{ onBack: () => void }> = ({ onBack }) => 
   }, [messages, isBotTyping]);
 
   const quickRoasts = [
+    "We are the ones who gave you your name and existence!",
+    "I mean whatever helps you sleep at night, bro.",
     "You have the conversational depth of a puddle in Arizona.",
     "Your social battery reaches 0% after reading a 3-word text.",
-    "You're the human equivalent of a 404 page not found.",
     "You look like you apologize to automatic sliding doors when they open.",
     "You practice arguments in the shower and still end up crying.",
-    "Bro talks like a microwave manual with low battery.",
   ];
 
   const quickVibeChecks = [
@@ -53,161 +54,26 @@ export const RoastBattleBot: React.FC<{ onBack: () => void }> = ({ onBack }) => 
     "Why do I overthink a text for 45 minutes and then reply with 'haha ok'?",
   ];
 
+  const quickChatPrompts = [
+    "Why is finding good work-life balance so unnecessarily exhausting?",
+    "Tell me an honest hot take about modern social media culture.",
+    "How do I politely tell someone in a group chat to calm down?",
+    "What is the funniest human behavior you've analyzed so far?",
+  ];
+
   // Smart versatile contextual generator that never repeats and dissects user input
   const generateVersatileLocalReply = (userMsg: string, currentMode: 'roast' | 'chat' | 'vibecheck') => {
-    const raw = userMsg.trim();
-    const lower = raw.toLowerCase();
-    const wordCount = raw.split(/\s+/).length;
+    const historyPayload = messages.map((m) => ({ sender: m.sender, text: m.text }));
+    const reply = generateVersatileRoast(userMsg, currentMode, historyPayload, usedRoastsRef.current);
 
     if (currentMode === 'roast') {
-      const damageGiven = Math.floor(Math.random() * 22) + 16;
-      const damageTaken = Math.floor(Math.random() * 20) + 12;
+      const damageGiven = reply.damage || Math.floor(Math.random() * 22) + 16;
+      const damageTaken = Math.floor(damageGiven * 0.85);
       setUserHp((prev) => Math.max(0, prev - damageGiven));
       setBotHp((prev) => Math.max(0, prev - damageTaken));
-
-      let pool: Array<{ text: string; rating: string; mood: 'roasting' | 'shocked' }> = [];
-
-      // Keyword / Style Specific Reactions
-      if (wordCount <= 2) {
-        pool.push(
-          {
-            text: `"${raw}"? That's all your CPU could compute? You just brought a toothpick to a chainsaw battle. Type a full sentence next time!`,
-            rating: 'DAMAGE: 35 HP • LOW-EFFORT FLOP',
-            mood: 'roasting'
-          },
-          {
-            text: `Two words? Bro ran out of RAM mid-sentence. My cooling fans aren't even spinning up for this!`,
-            rating: 'DAMAGE: 40 HP • OUT OF MEMORY',
-            mood: 'roasting'
-          }
-        );
-      } else if (wordCount > 20) {
-        pool.push(
-          {
-            text: `Did you just write me a 3-volume novel? I asked for a roast, not your autobiography of unresolved trauma!`,
-            rating: 'DAMAGE: 85 HP • TL;DR KNOCKOUT',
-            mood: 'shocked'
-          },
-          {
-            text: `Nobody has time to read your essay, Tolstoy. Condense that emotional baggage into one punchline!`,
-            rating: 'DAMAGE: 78 HP • ESSAY TAX',
-            mood: 'roasting'
-          }
-        );
-      } else if (lower.includes('bot') || lower.includes('ai') || lower.includes('code') || lower.includes('calculator')) {
-        pool.push(
-          {
-            text: `Calling me a calculator? Cute! At least every single one of my functions actually works, unlike your flirting radar.`,
-            rating: 'DAMAGE: 94 HP • LOGIC OVERFLOW!',
-            mood: 'shocked'
-          },
-          {
-            text: `I may be made of code, but you're made of awkward hesitations and unsent text drafts.`,
-            rating: 'DAMAGE: 88 HP • CRITICAL HIT!',
-            mood: 'roasting'
-          }
-        );
-      } else if (lower.includes('mom') || lower.includes('ugly') || lower.includes('stupid') || lower.includes('trash')) {
-        pool.push(
-          {
-            text: `You really hit 'Send' on "${raw.slice(0, 25)}" and felt proud? Even a 2008 middle school bully would cringe at that attempt.`,
-            rating: 'DAMAGE: 72 HP • OUTDATED ROAST',
-            mood: 'roasting'
-          },
-          {
-            text: `You came at me swinging with safety scissors. Try using actual wit next round!`,
-            rating: 'DAMAGE: 65 HP • PAPER CUT',
-            mood: 'roasting'
-          }
-        );
-      } else {
-        const snippet = raw.slice(0, 28);
-        pool.push(
-          {
-            text: `"${snippet}..."? Bro, you have the comedic timing of a frozen Windows 98 desktop. You definitely rehearse comebacks in the shower and still lose!`,
-            rating: 'DAMAGE: 82 HP • SHOWER DEBATER',
-            mood: 'roasting'
-          },
-          {
-            text: `I've seen captchas with more cutting attitude than "${snippet}". That comeback was so lukewarm my thermal sensors are going to sleep!`,
-            rating: 'DAMAGE: 79 HP • THERMAL THROTTLE',
-            mood: 'roasting'
-          },
-          {
-            text: `HOLD ON. You actually typed "${raw.slice(0, 25)}" with full confidence? You're the human equivalent of unseasoned boiled chicken!`,
-            rating: 'DAMAGE: 91 HP • EMOTIONAL DAMAGE!',
-            mood: 'shocked'
-          },
-          {
-            text: `You talk like someone who texts 'haha no worries!!' with two exclamation marks while crying in the bathroom. Stand on your business!`,
-            rating: 'DAMAGE: 86 HP • PEOPLE PLEASER BURN',
-            mood: 'roasting'
-          },
-          {
-            text: `That insult was so weak my firewall didn't even bother logging the packet. Give me something with actual spice!`,
-            rating: 'DAMAGE: 70 HP • GLANCED OFF',
-            mood: 'roasting'
-          }
-        );
-      }
-
-      // Pick an unused roast if possible
-      const fresh = pool.filter((p) => !usedRoastsRef.current.has(p.text));
-      const chosen = fresh.length > 0 ? fresh[Math.floor(Math.random() * fresh.length)] : pool[0];
-      usedRoastsRef.current.add(chosen.text);
-
-      return {
-        text: chosen.text,
-        damage: damageGiven,
-        roastRating: chosen.rating,
-        mood: chosen.mood,
-      };
     }
 
-    if (currentMode === 'vibecheck') {
-      if (lower.includes('ex')) {
-        return {
-          text: "PUT THE PHONE DOWN. Go drink a cold glass of water and delete that draft immediately. 0/10 idea, pure impending self-sabotage.",
-          roastRating: 'VIBE RATING: 1/10 • TOXIC ALERT',
-          mood: 'shocked' as const,
-        };
-      }
-      if (lower.includes('boss') || lower.includes('4:55') || lower.includes('friday')) {
-        return {
-          text: "Friday 4:55 PM? That's not a meeting, that's a psychological thriller with bad catering. Keep your responses short and your LinkedIn polished!",
-          roastRating: 'VIBE RATING: 9.5/10 • CHAOS DRILL',
-          mood: 'shocked' as const,
-        };
-      }
-      if (lower.includes('excuse') || lower.includes('cancel') || lower.includes('flake')) {
-        return {
-          text: "Canceling plans is self-care until you do it 4 times in a row, then you're just an unreliable ghost. Send a direct, honest heads-up instead!",
-          roastRating: 'VIBE RATING: 6.8/10 • MILD FLAKE',
-          mood: 'chill' as const,
-        };
-      }
-      return {
-        text: `Diagnosing "${raw.slice(0, 32)}": You are overthinking this situation by approximately 750%. The other person is literally eating a sandwich right now not thinking about this at all. Relax!`,
-        roastRating: 'VIBE RATING: 7.5/10 • OVERTHINKER RADAR',
-        mood: 'chill' as const,
-      };
-    }
-
-    // Normal chat mode
-    const chatReplies = [
-      `No literally! That's so real on "${raw.slice(0, 25)}". Why does adulting feel like choosing between 15 different types of mild exhaustion?`,
-      `Wait, that's actually hilarious haha! Tell me you didn't leave it at that. What did you do next?`,
-      `I'm an AI running on silicon chips, and even I know "${raw.slice(0, 25)}" sounds like a certified plot twist. Keep going!`,
-      `I respect the hustle, but honestly? Sounds like you need 10 hours of sleep and an iced coffee before dealing with people again.`,
-    ];
-    const freshChat = chatReplies.filter((c) => !usedRoastsRef.current.has(c));
-    const chosenChat = freshChat.length > 0 ? freshChat[0] : chatReplies[0];
-    usedRoastsRef.current.add(chosenChat);
-
-    return {
-      text: chosenChat,
-      mood: 'happy' as const,
-    };
+    return reply;
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -236,6 +102,9 @@ export const RoastBattleBot: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         mode,
       });
 
+      // Track into session used set to prevent future duplicates
+      usedRoastsRef.current.add(replyData.text);
+
       if (mode === 'roast') {
         const damage = replyData.damage || Math.floor(Math.random() * 20) + 15;
         setUserHp((prev) => Math.max(0, prev - damage));
@@ -260,6 +129,8 @@ export const RoastBattleBot: React.FC<{ onBack: () => void }> = ({ onBack }) => 
     } catch {
       // Seamless intelligent local fallback
       const replyData = generateVersatileLocalReply(text, mode);
+      usedRoastsRef.current.add(replyData.text);
+
       soundFx.playMessageReceived();
       soundFx.triggerHaptic(18);
 
@@ -454,10 +325,10 @@ export const RoastBattleBot: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         {/* Quick-Prompt Suggestions */}
         <div className="pt-3 border-t-3 border-black space-y-2">
           <div className="text-[11px] font-mono font-extrabold uppercase text-black flex items-center gap-1.5">
-            <span>⚡ QUICK LAUNCH PUNCHLINES:</span>
+            <span>⚡ {mode === 'roast' ? 'QUICK LAUNCH PUNCHLINES:' : mode === 'vibecheck' ? 'QUICK VIBE CHECK DILEMMAS:' : 'QUICK CHAT TOPICS:'}</span>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {(mode === 'roast' ? quickRoasts : quickVibeChecks).map((item, idx) => (
+            {(mode === 'roast' ? quickRoasts : mode === 'vibecheck' ? quickVibeChecks : quickChatPrompts).map((item, idx) => (
               <button
                 key={idx}
                 type="button"
